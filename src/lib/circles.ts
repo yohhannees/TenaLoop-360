@@ -1,0 +1,68 @@
+import { Circle } from "./types";
+
+export const circles: Circle[] = [
+  {
+    id: "student-stress",
+    name: "Student stress circle",
+    time: "Tonight, 8:00 PM",
+    members: 42,
+    focus: "Study pressure, sleep, and coffee habits",
+    challenge: "Three nights with a 20-minute wind-down",
+  },
+  {
+    id: "young-pros",
+    name: "Young professionals burnout",
+    time: "Wed, 7:30 PM",
+    members: 68,
+    focus: "Workload, commute fatigue, and boundaries",
+    challenge: "One screen-free lunch walk this week",
+  },
+  {
+    id: "womens-wellness",
+    name: "Women's wellness circle",
+    time: "Thu, 7:00 PM",
+    members: 54,
+    focus: "Stress, energy, hormonal balance, and self-care",
+    challenge: "Log mood and sleep for five consecutive days",
+  },
+  {
+    id: "fasting-wellness",
+    name: "Fasting wellness circle",
+    time: "Fri, 6:00 PM",
+    members: 35,
+    focus: "Balanced plant-based plates and energy during fasting",
+    challenge: "Build two high-fiber fasting plates this week",
+  },
+  {
+    id: "diabetes-prevention",
+    name: "Diabetes prevention circle",
+    time: "Sat, 9:00 AM",
+    members: 31,
+    focus: "Blood sugar, food choices, movement, and lifestyle habits",
+    challenge: "Replace one high-sugar meal with a balanced plate",
+  },
+  {
+    id: "bp-lifestyle",
+    name: "Hypertension lifestyle group",
+    time: "Sat, 10:00 AM",
+    members: 29,
+    focus: "Salt reduction, movement, sleep, and BP self-logging",
+    challenge: "Log BP twice and walk 15 minutes after lunch daily",
+  },
+  {
+    id: "fitness-beginners",
+    name: "Fitness beginners circle",
+    time: "Sun, 8:00 AM",
+    members: 47,
+    focus: "Starting movement habits from zero with no gym required",
+    challenge: "Complete three 15-minute walks or bodyweight sessions",
+  },
+  {
+    id: "walking-group",
+    name: "Addis walking group",
+    time: "Sat & Sun, 7:00 AM",
+    members: 83,
+    focus: "Group walks near Meskel Square, Entoto, and Friendship Park",
+    challenge: "Join one group walk and log 20-plus minutes of movement",
+  },
+];
