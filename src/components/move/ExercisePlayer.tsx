@@ -5,6 +5,7 @@ import { Check, ChevronRight, SkipForward, X } from "lucide-react";
 import { useWellness } from "@/context/WellnessContext";
 import { Workout, ExerciseCue } from "@/lib/exercises";
 import { cn } from "@/lib/utils";
+import ExerciseFigure from "@/components/move/ExerciseFigure";
 
 const CUE_ANIM: Record<ExerciseCue, string> = {
   breathe: "anim-breathe",
@@ -55,14 +56,28 @@ export default function ExercisePlayer({ workout, onClose }: Props) {
   const colors = CUE_COLOR[step.cue];
   const animClass = CUE_ANIM[step.cue];
 
+  const advance = useCallback(() => {
+    if (intervalRef.current) clearInterval(intervalRef.current);
+    if (stepIdx >= workout.steps.length - 1) {
+      setPhase("done");
+      award("Move", workout.points);
+    } else {
+      setStepIdx((i) => i + 1);
+    }
+  }, [stepIdx, workout.steps.length, workout.points, award]);
+
   // initialise timer for each step
   useEffect(() => {
-    setRepsCompleted(0);
-    if (step.type === "hold" || step.type === "rest") {
-      setSecondsLeft(step.count);
-    } else {
-      setSecondsLeft(0);
-    }
+    const resetTimer = setTimeout(() => {
+      setRepsCompleted(0);
+      if (step.type === "hold" || step.type === "rest") {
+        setSecondsLeft(step.count);
+      } else {
+        setSecondsLeft(0);
+      }
+    }, 0);
+
+    return () => clearTimeout(resetTimer);
   }, [stepIdx, step.type, step.count]);
 
   // countdown tick
@@ -82,18 +97,7 @@ export default function ExercisePlayer({ workout, onClose }: Props) {
     }, 1000);
 
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stepIdx, phase, step.type]);
-
-  const advance = useCallback(() => {
-    if (intervalRef.current) clearInterval(intervalRef.current);
-    if (stepIdx >= workout.steps.length - 1) {
-      setPhase("done");
-      award("Move", workout.points);
-    } else {
-      setStepIdx((i) => i + 1);
-    }
-  }, [stepIdx, workout.steps.length, workout.points, award]);
+  }, [advance, phase, step.type]);
 
   function tapRep() {
     const next = repsCompleted + 1;
@@ -160,41 +164,48 @@ export default function ExercisePlayer({ workout, onClose }: Props) {
 
       {/* Exercise visual + controls */}
       <div className="px-5 pb-5">
-        {/* Animated shape */}
-        <div className="mt-6 flex flex-col items-center gap-5">
-          <div className="relative">
-            {/* Outer ring for hold/breathe types */}
-            {(step.type === "hold" || step.type === "rest") && (
-              <div
-                className="absolute inset-0 rounded-full"
-                style={{
-                  background: `conic-gradient(${colors.ring} ${holdFraction * 360}deg, rgb(10 35 24 / 0.08) 0deg)`,
-                  transform: "scale(1.18)",
-                }}
-              />
-            )}
-            {/* Main animated circle */}
-            <div
-              className={cn("grid h-32 w-32 place-items-center rounded-full", animClass)}
-              style={{ backgroundColor: colors.bg, position: "relative", zIndex: 1 }}
-            >
-              <div className="grid place-items-center text-center">
-                <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: colors.text, opacity: 0.65 }}>
+        {/* Character figure + timer */}
+        <div className="mt-6 flex flex-col items-center gap-4">
+          {/* Animated SVG character */}
+          <div className="rounded-2xl bg-[#E5EAE3] px-4 py-3">
+            <ExerciseFigure cue={step.cue} />
+          </div>
+
+          {/* Timer chip — holds and rests show a countdown ring + number */}
+          {(step.type === "hold" || step.type === "rest") && (
+            <div className="relative grid h-20 w-20 place-items-center">
+              <svg viewBox="0 0 80 80" className="absolute inset-0 h-full w-full -rotate-90">
+                <circle cx="40" cy="40" r="34" fill="none" stroke="rgb(10 35 24 / 0.08)" strokeWidth="6" />
+                <circle cx="40" cy="40" r="34" fill="none"
+                  stroke={colors.ring} strokeWidth="6"
+                  strokeLinecap="round"
+                  strokeDasharray={`${213.6}`}
+                  strokeDashoffset={`${213.6 * (1 - holdFraction)}`}
+                  style={{ transition: "stroke-dashoffset 1s linear" }}
+                />
+              </svg>
+              <div className="relative text-center">
+                <span className="block text-[10px] font-bold uppercase tracking-wider" style={{ color: colors.ring, opacity: 0.7 }}>
                   {CUE_LABEL[step.cue]}
                 </span>
-                {(step.type === "hold" || step.type === "rest") && (
-                  <span className="font-serif text-4xl font-bold leading-none" style={{ color: colors.text }}>
-                    {secondsLeft}
-                  </span>
-                )}
-                {step.type === "reps" && (
-                  <span className="font-serif text-3xl font-bold leading-none" style={{ color: colors.text }}>
-                    {repsCompleted}<span className="text-lg opacity-50">/{step.count}</span>
-                  </span>
-                )}
+                <span className="font-serif text-2xl font-bold leading-none" style={{ color: colors.ring }}>
+                  {secondsLeft}
+                </span>
               </div>
             </div>
-          </div>
+          )}
+
+          {/* Rep counter chip */}
+          {step.type === "reps" && (
+            <div className="flex items-baseline gap-1 rounded-2xl px-5 py-2" style={{ backgroundColor: colors.bg + "22" }}>
+              <span className="font-serif text-3xl font-bold" style={{ color: colors.ring }}>
+                {repsCompleted}
+              </span>
+              <span className="text-base font-medium" style={{ color: colors.ring, opacity: 0.45 }}>
+                / {step.count} reps
+              </span>
+            </div>
+          )}
 
           {/* Exercise name */}
           <div className="text-center">

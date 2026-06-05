@@ -104,7 +104,7 @@ export default function ExerciseLibrary({ onStart, completedIds }: Props) {
 
               {/* Step preview dots */}
               <div className="mt-3 flex gap-1">
-                {workout.steps.map((s, i) => (
+                {workout.steps.map((s) => (
                   <span
                     key={s.id}
                     title={s.name}

@@ -51,12 +51,12 @@ const collageTiles = [
     position: "50% 48%",
   },
   {
-    src: "/tenaloop-photo-food.jpg",
+    src: "/tenaloop-photo-food-plate.jpg",
     alt: "Real nourishing meal on a table",
     position: "50% 52%",
   },
   {
-    src: "/tenaloop-photo-circle.jpg",
+    src: "/tenaloop-photo-circle-group.jpg",
     alt: "Real community gathering from a distance",
     position: "50% 42%",
   },
@@ -81,7 +81,7 @@ const collageTiles = [
     position: "50% 50%",
   },
   {
-    src: "/tenaloop-photo-food.jpg",
+    src: "/tenaloop-photo-food-plate.jpg",
     alt: "Real local meal guidance scene",
     position: "50% 52%",
   },
@@ -91,7 +91,7 @@ const collageTiles = [
     position: "50% 48%",
   },
   {
-    src: "/tenaloop-photo-circle.jpg",
+    src: "/tenaloop-photo-circle-group.jpg",
     alt: "Real peer support circle from above",
     position: "50% 42%",
   },
@@ -153,7 +153,7 @@ const workCards = [
     title: "TenaPlate Guidance",
     meta: "Local Meals / Fasting / BP Friendly",
     year: "02",
-    src: "/tenaloop-photo-food.jpg",
+    src: "/tenaloop-photo-food-plate.jpg",
     position: "50% 52%",
     raised: true,
   },
@@ -162,7 +162,7 @@ const workCards = [
     title: "TenaCircle Support",
     meta: "Peer Groups / Mood Pulse / Stamps",
     year: "03",
-    src: "/tenaloop-photo-circle.jpg",
+    src: "/tenaloop-photo-circle-group.jpg",
     position: "50% 42%",
   },
 ];
