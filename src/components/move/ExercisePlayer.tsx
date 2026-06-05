@@ -7,15 +7,6 @@ import { Workout, ExerciseCue } from "@/lib/exercises";
 import { cn } from "@/lib/utils";
 import ExerciseFigure from "@/components/move/ExerciseFigure";
 
-const CUE_ANIM: Record<ExerciseCue, string> = {
-  breathe: "anim-breathe",
-  bounce:  "anim-bounce",
-  hold:    "anim-hold",
-  stretch: "anim-stretch",
-  spin:    "anim-spin",
-  rest:    "anim-rest",
-};
-
 const CUE_COLOR: Record<ExerciseCue, { bg: string; ring: string; text: string }> = {
   breathe: { bg: "#E8EDE7", ring: "#0A2318", text: "#0A2318" },
   bounce:  { bg: "#8C6246", ring: "#724F38", text: "#E8EDE7" },
@@ -54,7 +45,6 @@ export default function ExercisePlayer({ workout, onClose }: Props) {
   const progress = ((stepIdx + 1) / workout.steps.length) * 100;
 
   const colors = CUE_COLOR[step.cue];
-  const animClass = CUE_ANIM[step.cue];
 
   const advance = useCallback(() => {
     if (intervalRef.current) clearInterval(intervalRef.current);
@@ -168,7 +158,7 @@ export default function ExercisePlayer({ workout, onClose }: Props) {
         <div className="mt-6 flex flex-col items-center gap-4">
           {/* Animated SVG character */}
           <div className="rounded-2xl bg-[#E5EAE3] px-4 py-3">
-            <ExerciseFigure cue={step.cue} />
+            <ExerciseFigure step={step} />
           </div>
 
           {/* Timer chip — holds and rests show a countdown ring + number */}
