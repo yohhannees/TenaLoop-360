@@ -32,10 +32,10 @@ export default function FoodPage() {
   }
 
   return (
-    <div className="grid gap-5 md:grid-cols-[2fr_3fr]">
+    <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(0,0.95fr)_minmax(0,1.25fr)]">
 
       {/* ── LEFT: Input panel ─────────────────────────────────── */}
-      <div className="grid content-start gap-5">
+      <div className="grid min-w-0 content-start gap-5">
         <FoodLogger
           foodText={foodText}
           setFoodText={setFoodText}
@@ -50,7 +50,7 @@ export default function FoodPage() {
       </div>
 
       {/* ── RIGHT: Output + tracking ──────────────────────────── */}
-      <div className="grid content-start gap-5">
+      <div className="grid min-w-0 content-start gap-5">
         {/* Analysis + nutrients — primary feedback for logged meal */}
         <MealGuidance signal={signal} meal={foodText} />
 

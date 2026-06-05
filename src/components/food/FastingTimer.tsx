@@ -48,8 +48,6 @@ export default function FastingTimer({ onSelectMeal }: Props) {
   const pct          = fraction * 100;
 
   const isReady      = elapsed >= 12 * 3600; // 12h+ recommend breaking
-  const isMilestone  = elapsed > 0 && elapsed % 3600 < 3; // just hit an hour
-
   return (
     <section className="rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-5 shadow-sm shadow-[#0A2318]/5">
       <p className="text-xs font-bold uppercase text-[#8C6246]">Fasting mode</p>

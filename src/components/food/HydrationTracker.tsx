@@ -34,12 +34,12 @@ export default function HydrationTracker() {
   const tip      = TIPS[cups % TIPS.length];
 
   return (
-    <section className="rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-5 shadow-sm shadow-[#0A2318]/5">
+    <section className="w-full min-w-0 max-w-full overflow-hidden rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-4 shadow-sm shadow-[#0A2318]/5 sm:p-5">
       <p className="text-xs font-bold uppercase text-[#8C6246]">Hydration</p>
       <h2 className="font-serif text-2xl text-[#0A2318]">Water tracker</h2>
 
       {/* Cup grid */}
-      <div className="mt-4 grid grid-cols-8 gap-2">
+      <div className="mt-4 grid grid-cols-4 gap-2 sm:grid-cols-8">
         {Array.from({ length: GOAL }).map((_, i) => (
           <button
             key={i}
@@ -75,7 +75,7 @@ export default function HydrationTracker() {
       </div>
 
       {/* Quick add buttons */}
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 grid gap-2 sm:grid-cols-2">
         <button
           type="button"
           onClick={() => add(1)}

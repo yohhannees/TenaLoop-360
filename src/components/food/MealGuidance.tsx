@@ -14,11 +14,11 @@ export default function MealGuidance({ signal, meal }: Props) {
   const keys    = Object.keys(NUTRIENT_LABELS) as Array<keyof NutrientProfile>;
 
   return (
-    <section className="rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-5 shadow-sm shadow-[#0A2318]/5">
+    <section className="w-full min-w-0 max-w-full overflow-hidden rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-4 shadow-sm shadow-[#0A2318]/5 sm:p-5">
 
       {/* Score row */}
-      <div className="flex items-start justify-between gap-4">
-        <div>
+      <div className="flex min-w-0 items-start justify-between gap-4">
+        <div className="min-w-0">
           <p className="text-xs font-bold uppercase text-[#8C6246]">AI meal guidance</p>
           <h2 className="font-serif text-3xl text-[#0A2318]">{signal.risk} risk</h2>
         </div>
@@ -78,7 +78,7 @@ export default function MealGuidance({ signal, meal }: Props) {
             return (
               <div key={key}>
                 <div className="mb-1 flex items-center justify-between gap-2 text-xs">
-                  <div className="flex items-center gap-1.5">
+                  <div className="flex min-w-0 flex-wrap items-center gap-1.5">
                     <span className="font-medium text-[#0A2318]/75">{label}</span>
                     {isWarn && <span className="rounded-full bg-[#C4503A]/12 px-2 py-0.5 text-[10px] font-semibold text-[#C4503A]">Watch</span>}
                     {isGood && <span className="rounded-full bg-[#0A2318]/8 px-2 py-0.5 text-[10px] font-semibold text-[#0A2318]/55">Good</span>}

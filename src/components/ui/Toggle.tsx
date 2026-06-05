@@ -15,7 +15,7 @@ export default function Toggle({ label, checked, onChange }: Props) {
           : "border-[#0A2318]/12 bg-[#E8EDE7] text-[#0A2318]/72 hover:border-[#8C6246] hover:text-[#0A2318]",
       )}
     >
-      {label}
+      <span className="min-w-0 truncate">{label}</span>
       <span
         className={cn(
           "h-5 w-9 rounded-full p-0.5 transition",

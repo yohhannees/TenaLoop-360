@@ -58,12 +58,12 @@ export default function DailyMealLog({ onMealSelect }: { onMealSelect: (text: st
   const dayScore = logged === 0 ? null : Math.round(entries.reduce((s,e) => s + e.signal.score, 0) / logged);
 
   return (
-    <section className="rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-5 shadow-sm shadow-[#0A2318]/5">
+    <section className="w-full min-w-0 max-w-full overflow-hidden rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-4 shadow-sm shadow-[#0A2318]/5 sm:p-5">
 
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-bold uppercase text-[#8C6246]">Today's log</p>
+          <p className="text-xs font-bold uppercase text-[#8C6246]">Today&apos;s log</p>
           <h2 className="font-serif text-2xl text-[#0A2318]">
             {logged === 0 ? "No meals logged yet" : `${logged} meal${logged > 1 ? "s" : ""} logged`}
           </h2>
@@ -92,7 +92,7 @@ export default function DailyMealLog({ onMealSelect }: { onMealSelect: (text: st
               <button
                 type="button"
                 onClick={() => setOpen(isOpen ? null : slot)}
-                className="flex w-full items-center gap-3 px-4 py-3 text-left"
+                className="flex w-full min-w-0 items-center gap-3 px-4 py-3 text-left"
               >
                 <span className="text-base leading-none">{emoji}</span>
                 <div className="flex-1 min-w-0">
@@ -147,7 +147,7 @@ export default function DailyMealLog({ onMealSelect }: { onMealSelect: (text: st
 
                   {/* Add form or empty state */}
                   {isAdding ? (
-                    <div className="flex gap-2">
+                    <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
                       <input
                         autoFocus
                         value={draft}
@@ -157,11 +157,11 @@ export default function DailyMealLog({ onMealSelect }: { onMealSelect: (text: st
                         className="h-10 flex-1 min-w-0 rounded-full border border-[#0A2318]/12 bg-white px-4 text-sm text-[#0A2318] outline-none focus:border-[#8C6246]"
                       />
                       <button type="button" onClick={() => submitEntry(slot)}
-                        className="h-10 shrink-0 rounded-full bg-[#8C6246] px-4 text-sm font-semibold text-[#E8EDE7] transition hover:bg-[#724F38]">
+                        className="h-10 rounded-full bg-[#8C6246] px-4 text-sm font-semibold text-[#E8EDE7] transition hover:bg-[#724F38]">
                         Log
                       </button>
                       <button type="button" onClick={() => setAdding(null)}
-                        className="h-10 w-10 shrink-0 grid place-items-center rounded-full border border-[#0A2318]/12 text-[#0A2318]/45">
+                        className="grid h-10 w-full place-items-center rounded-full border border-[#0A2318]/12 text-[#0A2318]/45 sm:w-10">
                         <X size={14} />
                       </button>
                     </div>

@@ -1,5 +1,4 @@
 import { getMealNutrients, NUTRIENT_LABELS, NutrientProfile } from "@/lib/nutrients";
-import { cn } from "@/lib/utils";
 
 type Props = { meal: string };
 
