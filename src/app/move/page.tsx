@@ -1,49 +1,44 @@
-import BreathingTimer from "@/components/move/BreathingTimer";
-import WorkoutRoutines from "@/components/move/WorkoutRoutines";
+"use client";
 
-export const metadata = { title: "TenaMove - TenaLoop 360" };
+import { useState } from "react";
+import { Workout } from "@/lib/exercises";
+import BreathingTimer from "@/components/move/BreathingTimer";
+import WeeklyStreak from "@/components/move/WeeklyStreak";
+import ExerciseLibrary from "@/components/move/ExerciseLibrary";
+import ExercisePlayer from "@/components/move/ExercisePlayer";
 
 export default function MovePage() {
+  const [activeWorkout, setActiveWorkout] = useState<Workout | null>(null);
+  const [completedIds, setCompletedIds] = useState<string[]>([]);
+
+  function startWorkout(workout: Workout) {
+    setActiveWorkout(workout);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function finishWorkout() {
+    if (activeWorkout && !completedIds.includes(activeWorkout.id)) {
+      setCompletedIds((prev) => [...prev, activeWorkout.id]);
+    }
+    setActiveWorkout(null);
+  }
+
   return (
-    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[0.85fr_1.15fr]">
+      {/* Left column */}
       <div className="grid min-w-0 content-start gap-5">
         <BreathingTimer />
-
-        <section className="rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-5 shadow-sm shadow-[#0A2318]/5">
-          <p className="text-xs font-bold uppercase text-[#8C6246]">Walking challenge</p>
-          <h2 className="font-serif text-3xl text-[#0A2318]">This week&apos;s goal</h2>
-          <div className="mt-4 grid gap-3">
-            {[
-              { day: "Mon", done: true },
-              { day: "Tue", done: true },
-              { day: "Wed", done: false },
-              { day: "Thu", done: false },
-              { day: "Fri", done: false },
-            ].map(({ day, done }) => (
-              <div key={day} className="flex items-center justify-between gap-3 text-sm">
-                <span className="font-medium text-[#0A2318]">{day}</span>
-                <div
-                  className="flex-1 overflow-hidden rounded-full bg-[#0A2318]/10"
-                  style={{ height: 8 }}
-                >
-                  <div
-                    className="h-full rounded-full bg-[#8C6246]"
-                    style={{ width: done ? "100%" : "0%" }}
-                  />
-                </div>
-                <span className="w-12 text-right text-[#0A2318]/58">
-                  {done ? "20 min" : "-"}
-                </span>
-              </div>
-            ))}
-          </div>
-          <p className="mt-4 text-sm text-[#0A2318]/64">
-            2 of 5 days completed. Walk 15 minutes after lunch to hit today&apos;s goal.
-          </p>
-        </section>
+        <WeeklyStreak />
       </div>
 
-      <WorkoutRoutines />
+      {/* Right column — player or library */}
+      <div className="min-w-0">
+        {activeWorkout ? (
+          <ExercisePlayer workout={activeWorkout} onClose={finishWorkout} />
+        ) : (
+          <ExerciseLibrary onStart={startWorkout} completedIds={completedIds} />
+        )}
+      </div>
     </div>
   );
 }
