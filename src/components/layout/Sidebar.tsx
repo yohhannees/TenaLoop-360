@@ -143,7 +143,7 @@ export default function Sidebar() {
                 <p className="font-serif text-sm font-bold leading-tight text-[#E8EDE7]">
                   TenaLoop 360
                 </p>
-                <p className="text-[10px] text-[#E8EDE7]/38">Wellness passport</p>
+                <p className="text-[10px] text-[#E8EDE7]/68">Wellness passport</p>
               </div>
             </Link>
           )}
@@ -152,7 +152,7 @@ export default function Sidebar() {
           <button
             onClick={toggleCollapse}
             className={cn(
-              "hidden h-7 w-7 items-center justify-center rounded-lg border border-white/10 text-[#E8EDE7]/45 transition hover:border-white/25 hover:text-[#E8EDE7]/80 lg:flex",
+              "hidden h-7 w-7 items-center justify-center rounded-lg border border-white/10 text-[#E8EDE7]/72 transition hover:border-white/25 hover:text-white lg:flex",
               collapsed && "mx-auto",
             )}
           >
@@ -162,7 +162,7 @@ export default function Sidebar() {
           {/* Mobile close */}
           <button
             onClick={close}
-            className="ml-auto grid h-8 w-8 place-items-center text-[#E8EDE7]/50 transition hover:text-[#E8EDE7] lg:hidden"
+            className="ml-auto grid h-8 w-8 place-items-center text-[#E8EDE7]/82 transition hover:text-[#E8EDE7] lg:hidden"
           >
             <X size={18} />
           </button>
@@ -205,7 +205,7 @@ export default function Sidebar() {
             <div className="grid gap-3">
               {/* Label row */}
               <div className="flex items-center justify-between">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#E8EDE7]/35">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-[#E8EDE7]/65">
                   Today
                 </p>
                 <span
@@ -233,7 +233,7 @@ export default function Sidebar() {
 
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-[#E8EDE7]/40">Points</span>
+                    <span className="text-[#E8EDE7]/68">Points</span>
                     <span className="font-semibold text-[#D4C1A0]">{points}</span>
                   </div>
                   <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/8">
@@ -245,7 +245,7 @@ export default function Sidebar() {
                       }}
                     />
                   </div>
-                  <div className="mt-2 flex items-center justify-between text-[10px] text-[#E8EDE7]/32">
+                  <div className="mt-2 flex items-center justify-between text-[10px] text-[#E8EDE7]/65">
                     <span>Passport</span>
                     <span>{stamps.length}/6 stamps</span>
                   </div>
@@ -268,9 +268,9 @@ export default function Sidebar() {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-3">
+        <nav className="no-scrollbar flex-1 overflow-y-auto py-3">
           {!collapsed && (
-            <p className="mb-2 px-4 text-[10px] font-bold uppercase tracking-wider text-[#E8EDE7]/28">
+            <p className="mb-2 px-4 text-[10px] font-bold uppercase tracking-wider text-[#E8EDE7]/60">
               Navigate
             </p>
           )}
@@ -287,7 +287,7 @@ export default function Sidebar() {
                     "group flex items-center gap-3 rounded-xl px-2 py-2.5 transition-all duration-150",
                     active
                       ? "bg-white/10 text-[#E8EDE7]"
-                      : "text-[#E8EDE7]/50 hover:bg-white/6 hover:text-[#E8EDE7]/85",
+                      : "text-[#E8EDE7]/82 hover:bg-white/6 hover:text-white",
                     collapsed && "justify-center",
                   )}
                 >
@@ -296,7 +296,7 @@ export default function Sidebar() {
                       "grid h-8 w-8 shrink-0 place-items-center rounded-lg transition",
                       active
                         ? "text-[#D4C1A0]"
-                        : "text-current group-hover:text-[#E8EDE7]/70",
+                        : "text-current group-hover:text-[#E8EDE7]/90",
                     )}
                     style={active ? { backgroundColor: color + "20" } : undefined}
                   >
@@ -309,7 +309,7 @@ export default function Sidebar() {
                         <p className="truncate text-sm font-medium leading-tight">
                           {navLabel}
                         </p>
-                        <p className="truncate text-[10px] text-[#E8EDE7]/30">{sub}</p>
+                        <p className="truncate text-[10px] text-[#E8EDE7]/65">{sub}</p>
                       </div>
                       {active && (
                         <span
@@ -339,14 +339,14 @@ export default function Sidebar() {
                   setLanguage(language === "English" ? "Amharic-ready" : "English")
                 }
                 title="Toggle language"
-                className="mx-auto grid h-8 w-8 place-items-center rounded-lg text-[#E8EDE7]/38 transition hover:text-[#E8EDE7]/70"
+                className="mx-auto grid h-8 w-8 place-items-center rounded-lg text-[#E8EDE7]/68 transition hover:text-[#E8EDE7]/90"
               >
                 <Globe2 size={15} strokeWidth={1.5} />
               </button>
               <Link
                 href="/"
                 title="Sign out"
-                className="mx-auto grid h-8 w-8 place-items-center rounded-lg text-[#E8EDE7]/30 transition hover:text-[#E8EDE7]/65"
+                className="mx-auto grid h-8 w-8 place-items-center rounded-lg text-[#E8EDE7]/65 transition hover:text-[#E8EDE7]/90"
               >
                 <LogOut size={15} strokeWidth={1.5} />
               </Link>
@@ -366,7 +366,7 @@ export default function Sidebar() {
                   onClick={() =>
                     setLanguage(language === "English" ? "Amharic-ready" : "English")
                   }
-                  className="flex items-center gap-1.5 text-[10px] text-[#E8EDE7]/35 transition hover:text-[#E8EDE7]/60"
+                  className="flex items-center gap-1.5 text-[10px] text-[#E8EDE7]/65 transition hover:text-[#E8EDE7]/90"
                 >
                   <Globe2 size={12} />
                   {language}
@@ -374,7 +374,7 @@ export default function Sidebar() {
                 <Link
                   href="/"
                   onClick={close}
-                  className="flex items-center gap-1.5 text-[10px] text-[#E8EDE7]/30 transition hover:text-[#E8EDE7]/60"
+                  className="flex items-center gap-1.5 text-[10px] text-[#E8EDE7]/65 transition hover:text-[#E8EDE7]/90"
                 >
                   <LogOut size={12} />
                   Sign out
