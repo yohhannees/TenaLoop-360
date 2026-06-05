@@ -6,7 +6,7 @@ import AppFrame from "@/components/layout/AppFrame";
 export const metadata: Metadata = {
   title: "TenaLoop 360",
   description:
-    "AI wellness passport for stress, food, movement, community, and wellness services in Addis Ababa.",
+    "Body-aware AI wellness passport for stress, pain, food, movement, community, and wellness services in Addis Ababa.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

@@ -1,11 +1,13 @@
 import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import NavBar from "./NavBar";
 import {
   Activity,
   ArrowRight,
   ArrowUp,
   ArrowUpRight,
+  BookOpen,
   Brain,
   CalendarCheck,
   Dumbbell,
@@ -14,6 +16,7 @@ import {
   Store,
   Users,
   Utensils,
+  Wind,
 } from "lucide-react";
 
 const paperTexture: CSSProperties = {
@@ -128,16 +131,54 @@ const contents = [
     label: "Four layers",
   },
   {
-    href: "#work",
+    href: "#rooted",
     number: "03.",
+    title: "Rooted Body Intelligence",
+    label: "AI wellness path",
+  },
+  {
+    href: "#work",
+    number: "04.",
     title: "Selected wellness loops",
     label: "Product modules",
   },
   {
     href: "#services",
-    number: "04.",
+    number: "05.",
     title: "The psychology of daily care",
     label: "Our method",
+  },
+];
+
+const rootedSteps = [
+  { step: "Breathe", icon: Wind,          detail: "3-min Efoy reset. ትንፍስ · ተዝናና · ዕፎይ." },
+  { step: "Move",    icon: Dumbbell,      detail: "Spine-safe neck release. 10-min walk after lunch." },
+  { step: "Nourish", icon: Utensils,      detail: "Shiro, misir, gomen, injera. Iron-rich on cycle days." },
+  { step: "Reflect", icon: BookOpen,      detail: "Where did I feel pressure before I noticed it in my mind?" },
+  { step: "Connect", icon: Users,         detail: "Women's circle, ALX burnout group, or peer loop." },
+  { step: "Refer",   icon: CalendarCheck, detail: "Yoga, spine check, women's telehealth, or mindfulness." },
+];
+
+const panelists = [
+  {
+    name: "Deborah Lundstrom",
+    role: "Tulsi Wellness · Yoga & Ayurveda",
+    hit: "Efoy Reset, breath, gentle movement, booking wellness experiences, and a culturally rooted journey.",
+  },
+  {
+    name: "Kidist Tesfaye",
+    role: "YeneHealth · Femtech",
+    hit: "Cycle-aware stress mode, private women's wellness layer, and referral to telehealth professionals.",
+  },
+  {
+    name: "Dr. Selam Aklilu",
+    role: "First Spine Clinics · Chiropractic",
+    hit: "Body pain map, posture risk detection, spine-safe movement routines, and red-flag provider referral.",
+  },
+  {
+    name: "Dr. Kidi",
+    role: "Dr. Kidi LLC · Integrative Medicine",
+    hit: "\"What is your body telling you?\" — embodied awareness, reflective journaling, and healing alongside medicine.",
   },
 ];
 
@@ -238,6 +279,106 @@ const method = [
     body: "Give employers, clinics, and campuses anonymous wellness patterns without exposing people.",
   },
 ];
+
+function RootedBodySection() {
+  return (
+    <section
+      id="rooted"
+      className="relative mb-0 rounded-[2rem] bg-[#E8EDE7] p-4 text-[#0A2318] shadow-[5px_5px_15px_rgba(0,0,0,0.45)] sm:p-8 md:p-12"
+      style={paperTexture}
+    >
+      {/* header */}
+      <div className="mb-10 flex flex-col gap-4 border-b-4 border-[#0A2318] pb-5 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-wider text-[#8C6246]">
+            Rooted Body Intelligence
+          </p>
+          <h2 className="mt-2 font-serif text-5xl leading-none md:text-7xl">
+            What is your body<br className="hidden sm:block" /> telling you today?
+          </h2>
+        </div>
+        <p className="max-w-sm text-sm leading-6 text-[#0A2318]/62">
+          AI that listens to stress, pain, sleep, food, women&apos;s cycle, and culture —
+          then creates one culturally rooted wellness path.
+        </p>
+      </div>
+
+      {/* 6-step path */}
+      <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
+        {rootedSteps.map((item, i) => {
+          const Icon = item.icon;
+          return (
+            <div key={item.step} className="flex flex-col gap-3">
+              <div className="flex items-center gap-2">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#0A2318] text-[#D4C1A0]">
+                  <Icon size={17} />
+                </span>
+                {i < 5 && (
+                  <span className="hidden h-px flex-1 bg-[#0A2318]/14 lg:block" />
+                )}
+              </div>
+              <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-[#8C6246]">
+                {String(i + 1).padStart(2, "0")}. {item.step}
+              </p>
+              <p className="text-xs leading-5 text-[#0A2318]/58">{item.detail}</p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Hana demo callout */}
+      <div className="mt-10 overflow-hidden rounded-[1.5rem] bg-[#0A2318] p-6 text-[#E8EDE7] md:p-8">
+        <p className="mb-3 font-mono text-[10px] font-bold uppercase tracking-widest text-[#D4C1A0]">
+          Demo scenario — Hana, 26 · ALX student · Addis
+        </p>
+        <p className="max-w-2xl font-serif text-xl italic leading-relaxed text-[#E8EDE7]/75 md:text-2xl">
+          &ldquo;I slept 4 hours, I feel stressed, my neck hurts, my period is coming,
+          and I ate firfir with coffee.&rdquo;
+        </p>
+        <div className="mt-5 flex flex-wrap items-center gap-3">
+          <span className="rounded-full border border-[#E8EDE7]/18 px-3 py-1 font-mono text-xs font-semibold text-[#E8EDE7]/55">
+            TenaScore: 52/100
+          </span>
+          <span className="text-[#D4C1A0]/40">→</span>
+          {["Breathe", "Move", "Nourish", "Reflect", "Connect", "Refer"].map((s) => (
+            <span
+              key={s}
+              className="rounded-full bg-[#E8EDE7]/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-widest text-[#D4C1A0]"
+            >
+              {s}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* panelist table */}
+      <div className="mt-10 grid gap-4 sm:grid-cols-2">
+        {panelists.map((p) => (
+          <div
+            key={p.name}
+            className="rounded-[1.5rem] border border-[#0A2318]/10 bg-[#D4C1A0]/35 p-5"
+          >
+            <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-[#8C6246]">
+              {p.role}
+            </p>
+            <h4 className="mt-1 font-serif text-xl text-[#0A2318]">{p.name}</h4>
+            <p className="mt-2 text-sm leading-6 text-[#0A2318]/62">{p.hit}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* CTA */}
+      <div className="mt-10">
+        <Link
+          href="/loop"
+          className="inline-flex items-center gap-2 rounded-full bg-[#0A2318] px-6 py-3 font-sans text-sm font-bold uppercase tracking-wider text-[#E8EDE7] transition hover:bg-[#8C6246]"
+        >
+          Open the loop <ArrowRight size={15} />
+        </Link>
+      </div>
+    </section>
+  );
+}
 
 function SpiralDivider() {
   return (
@@ -363,6 +504,7 @@ function ProductChapters() {
 export default function LandingPage() {
   return (
     <main className="min-h-screen overflow-x-hidden bg-[#0A2318] px-2 py-8 font-sans text-[#0A2318] antialiased selection:bg-[#D4C1A0] selection:text-[#0A2318] sm:px-4 md:px-8">
+      <NavBar />
       <div className="fixed inset-0 z-0 pointer-events-none opacity-20" style={darkTexture} />
 
       <div className="relative z-10 mx-auto min-h-[90vh] max-w-5xl [perspective:1000px]">
@@ -513,6 +655,10 @@ export default function LandingPage() {
         <SpiralDivider />
 
         <ProductChapters />
+
+        <SpiralDivider />
+
+        <RootedBodySection />
 
         <SpiralDivider />
 

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Users } from "lucide-react";
 import { useWellness } from "@/context/WellnessContext";
 import { circles } from "@/lib/circles";
@@ -12,10 +13,21 @@ import ChallengeTracker from "@/components/circles/ChallengeTracker";
 import CircleCheckIn from "@/components/circles/CircleCheckIn";
 
 export default function CirclesPage() {
+  return (
+    <Suspense fallback={null}>
+      <CirclesPageContent />
+    </Suspense>
+  );
+}
+
+function CirclesPageContent() {
   const { joinedCircles, joinCircle } = useWellness();
+  const searchParams = useSearchParams();
+  const linkedCircleId = searchParams.get("circle");
+  const linkedCircle = circles.find((circle) => circle.id === linkedCircleId);
 
   // Default to first joined circle, else first circle
-  const defaultId = joinedCircles[0] ?? circles[0].id;
+  const defaultId = linkedCircle?.id ?? joinedCircles[0] ?? circles[0].id;
   const [selectedId, setSelectedId] = useState(defaultId);
 
   const selected = circles.find((c) => c.id === selectedId) ?? circles[0];

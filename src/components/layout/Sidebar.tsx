@@ -24,7 +24,7 @@ import { useWellness } from "@/context/WellnessContext";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/loop",      label: "Daily Loop",  sub: "Check in",   Icon: RefreshCw },
+  { href: "/loop",      label: "Rooted Body", sub: "Daily AI",   Icon: RefreshCw },
   { href: "/coach",     label: "TenaBot",     sub: "AI coach",   Icon: Bot },
   { href: "/food",      label: "TenaPlate",   sub: "Nutrition",  Icon: Utensils },
   { href: "/move",      label: "TenaMove",    sub: "Movement",   Icon: Dumbbell },

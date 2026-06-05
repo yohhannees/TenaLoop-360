@@ -3,6 +3,19 @@ export type Support = "Low" | "Some" | "Strong";
 export type Stamp = "Mind" | "Food" | "Move" | "Community" | "Experience" | "Health";
 export type MessageRole = "assistant" | "user";
 export type Language = "English" | "Amharic-ready";
+export type PreferredLanguage = "English" | "Amharic-ready" | "Mixed";
+export type BodyArea =
+  | "Neck"
+  | "Shoulders"
+  | "Lower back"
+  | "Head"
+  | "Stomach"
+  | "Chest"
+  | "Hips"
+  | "Knees"
+  | "Wrists/hands";
+export type PainTrigger = "Long sitting" | "Stress" | "Poor sleep" | "Exercise" | "Not sure";
+export type CycleContext = "None" | "Period near" | "On period" | "Pregnant" | "Postpartum";
 
 export type CheckIn = {
   mood: Mood;
@@ -14,6 +27,19 @@ export type CheckIn = {
   meal: string;
   support: Support;
   fasting: boolean;
+  painAreas: BodyArea[];
+  painIsNew: boolean;
+  painTrigger: PainTrigger;
+  redFlags: boolean;
+  womenWellness: boolean;
+  cycleContext: CycleContext;
+  privacyMode: boolean;
+  screenHours: number;
+  coffeeCups: number;
+  sugarServings: number;
+  familyStress: boolean;
+  communitySupport: boolean;
+  preferredLanguage: PreferredLanguage;
   bpFocus: boolean;
   glucoseFocus: boolean;
   bp: string;

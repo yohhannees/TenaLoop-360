@@ -7,7 +7,8 @@ import { cn } from "@/lib/utils";
 
 export default function ChatWindow() {
   const { messages, score, scoreLabel, checkIn, foodSignal } = useWellness();
-  const { input, setInput, handleSubmit, sendMessage, quickPrompts } = useCoachChat();
+  const { input, setInput, handleSubmit, sendMessage, quickPrompts, isSending, error } =
+    useCoachChat();
 
   return (
     <section className="min-w-0 overflow-hidden rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-4 shadow-sm shadow-[#0A2318]/5 sm:p-5">
@@ -30,11 +31,23 @@ export default function ChatWindow() {
         </div>
       </div>
 
-      <div className="mt-5 grid grid-cols-2 gap-2 rounded-[1.5rem] border border-[#0A2318]/10 bg-[#E5EAE3] p-3 text-sm sm:grid-cols-4">
+      <div className="mt-5 grid grid-cols-2 gap-2 rounded-[1.5rem] border border-[#0A2318]/10 bg-[#E5EAE3] p-3 text-sm sm:grid-cols-3 xl:grid-cols-6">
         <MiniSignal label="Stress" value={`${checkIn.stress}/10`} />
         <MiniSignal label="Sleep" value={`${checkIn.sleep}h`} />
         <MiniSignal label="Movement" value={`${checkIn.movement}m`} />
         <MiniSignal label="Support" value={checkIn.support} />
+        <MiniSignal
+          label="Body"
+          value={
+            checkIn.painAreas.length
+              ? `${checkIn.painAreas.length} area${checkIn.painAreas.length > 1 ? "s" : ""}`
+              : "Clear"
+          }
+        />
+        <MiniSignal
+          label="Women"
+          value={checkIn.womenWellness ? checkIn.cycleContext : "Off"}
+        />
       </div>
 
       <div className="mt-5 flex max-w-full min-w-0 gap-2 overflow-x-auto pb-1 no-scrollbar">
@@ -42,8 +55,9 @@ export default function ChatWindow() {
           <button
             key={prompt}
             type="button"
-            onClick={() => sendMessage(prompt)}
-            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-[#0A2318]/10 bg-[#E5EAE3] px-3.5 text-xs font-semibold text-[#0A2318]/68 transition hover:border-[#8C6246] hover:text-[#0A2318]"
+            disabled={isSending}
+            onClick={() => void sendMessage(prompt)}
+            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-[#0A2318]/10 bg-[#E5EAE3] px-3.5 text-xs font-semibold text-[#0A2318]/68 transition hover:border-[#8C6246] hover:text-[#0A2318] disabled:cursor-not-allowed disabled:opacity-45"
           >
             <Sparkles size={13} />
             {prompt}
@@ -65,21 +79,34 @@ export default function ChatWindow() {
             {msg.text}
           </div>
         ))}
+        {isSending && (
+          <div className="max-w-[92%] justify-self-start rounded-[1.5rem] rounded-bl-sm bg-[#E5EAE3] px-4 py-3 text-sm leading-6 text-[#0A2318]/58">
+            TenaBot is reading your score, body signals, and support path...
+          </div>
+        )}
       </div>
+
+      {error && (
+        <p className="mt-3 rounded-2xl border border-[#8C6246]/18 bg-[#D4C1A0]/24 px-4 py-2 text-xs leading-5 text-[#0A2318]/60">
+          {error}
+        </p>
+      )}
 
       <form onSubmit={handleSubmit} className="mt-5 grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
         <input
           value={input}
+          disabled={isSending}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Tell TenaBot what is happening today..."
-          className="h-12 min-w-0 rounded-full border border-[#0A2318]/12 bg-[#E5EAE3] px-4 text-sm text-[#0A2318] outline-none placeholder:text-[#0A2318]/36 focus:border-[#8C6246] focus:bg-[#F3F5F1]"
+          className="h-12 min-w-0 rounded-full border border-[#0A2318]/12 bg-[#E5EAE3] px-4 text-sm text-[#0A2318] outline-none placeholder:text-[#0A2318]/36 focus:border-[#8C6246] focus:bg-[#F3F5F1] disabled:cursor-not-allowed disabled:opacity-60"
         />
         <button
           type="submit"
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#0A2318] px-6 text-sm font-semibold text-[#E8EDE7] shadow-sm shadow-[#0A2318]/10 transition hover:bg-[#1A3A2A]"
+          disabled={isSending || !input.trim()}
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#0A2318] px-6 text-sm font-semibold text-[#E8EDE7] shadow-sm shadow-[#0A2318]/10 transition hover:bg-[#1A3A2A] disabled:cursor-not-allowed disabled:opacity-45"
         >
           <Send size={16} />
-          Send
+          {isSending ? "Thinking" : "Send"}
         </button>
       </form>
     </section>

@@ -8,13 +8,26 @@ import { getFoodSignal } from "@/lib/foods";
 const DEFAULT_CHECK_IN: CheckIn = {
   mood: "Steady",
   stress: 7,
-  sleep: 5,
-  energy: 5,
-  movement: 12,
+  sleep: 4,
+  energy: 4,
+  movement: 10,
   water: 4,
   meal: "Firfir and sweet coffee",
   support: "Low",
   fasting: false,
+  painAreas: ["Neck", "Shoulders"],
+  painIsNew: false,
+  painTrigger: "Long sitting",
+  redFlags: false,
+  womenWellness: true,
+  cycleContext: "Period near",
+  privacyMode: true,
+  screenHours: 8,
+  coffeeCups: 2,
+  sugarServings: 2,
+  familyStress: false,
+  communitySupport: false,
+  preferredLanguage: "Mixed",
   bpFocus: true,
   glucoseFocus: false,
   bp: "",
@@ -27,6 +40,14 @@ const INITIAL_MESSAGES: ChatMessage[] = [
     text: "Selam, I am TenaBot. Tell me what is happening today and I will turn it into one practical wellness loop.",
   },
 ];
+
+function normalizeCheckIn(checkIn: CheckIn): CheckIn {
+  return {
+    ...DEFAULT_CHECK_IN,
+    ...checkIn,
+    painAreas: checkIn.painAreas ?? DEFAULT_CHECK_IN.painAreas,
+  };
+}
 
 type WellnessContextValue = {
   // check-in
@@ -46,6 +67,8 @@ type WellnessContextValue = {
   messages: ChatMessage[];
   addMessage: (message: ChatMessage) => void;
   // market
+  savedProviderMatches: string[];
+  saveProviderMatch: (id: string) => void;
   bookedProviders: string[];
   bookProvider: (id: string) => void;
   // circles
@@ -63,15 +86,17 @@ export function WellnessProvider({ children }: { children: ReactNode }) {
   const [stamps, setStamps] = useState<Stamp[]>(["Mind", "Food"]);
   const [points, setPoints] = useState(180);
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
+  const [savedProviderMatches, setSavedProviderMatches] = useState<string[]>([]);
   const [bookedProviders, setBookedProviders] = useState<string[]>([]);
-  const [joinedCircles, setJoinedCircles] = useState<string[]>(["student-stress"]);
+  const [joinedCircles, setJoinedCircles] = useState<string[]>([]);
   const [language, setLanguage] = useState<Language>("English");
 
-  const score = useMemo(() => calculateScore(checkIn), [checkIn]);
+  const normalizedCheckIn = useMemo(() => normalizeCheckIn(checkIn), [checkIn]);
+  const score = useMemo(() => calculateScore(normalizedCheckIn), [normalizedCheckIn]);
   const scoreColor = useMemo(() => getScoreColor(score), [score]);
   const scoreLabel = useMemo(() => getScoreLabel(score), [score]);
-  const plan = useMemo(() => buildPlan(checkIn, score), [checkIn, score]);
-  const foodSignal = useMemo(() => getFoodSignal(checkIn.meal), [checkIn.meal]);
+  const plan = useMemo(() => buildPlan(normalizedCheckIn, score), [normalizedCheckIn, score]);
+  const foodSignal = useMemo(() => getFoodSignal(normalizedCheckIn.meal), [normalizedCheckIn.meal]);
 
   function updateCheckIn<K extends keyof CheckIn>(key: K, value: CheckIn[K]) {
     setCheckIn((prev) => ({ ...prev, [key]: value }));
@@ -84,6 +109,10 @@ export function WellnessProvider({ children }: { children: ReactNode }) {
 
   function addMessage(message: ChatMessage) {
     setMessages((prev) => [...prev, message]);
+  }
+
+  function saveProviderMatch(id: string) {
+    setSavedProviderMatches((prev) => (prev.includes(id) ? prev : [...prev, id]));
   }
 
   function bookProvider(id: string) {
@@ -99,7 +128,7 @@ export function WellnessProvider({ children }: { children: ReactNode }) {
   return (
     <WellnessContext.Provider
       value={{
-        checkIn,
+        checkIn: normalizedCheckIn,
         updateCheckIn,
         score,
         scoreColor,
@@ -111,6 +140,8 @@ export function WellnessProvider({ children }: { children: ReactNode }) {
         award,
         messages,
         addMessage,
+        savedProviderMatches,
+        saveProviderMatch,
         bookedProviders,
         bookProvider,
         joinedCircles,

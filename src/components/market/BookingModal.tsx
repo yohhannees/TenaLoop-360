@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { ArrowLeft, ArrowRight, Check, Copy, X } from "lucide-react";
 import { ExtendedProvider } from "@/lib/market-providers";
 import { cn } from "@/lib/utils";
@@ -27,14 +27,18 @@ function makeDateOptions() {
   });
 }
 
+function makeBookingRef() {
+  return `TL-${new Date().getFullYear()}-${String(Math.floor(1000 + Math.random() * 9000))}`;
+}
+
 type Props = { provider: ExtendedProvider; onClose: () => void; onConfirm: () => void };
 
 export default function BookingModal({ provider, onClose, onConfirm }: Props) {
-  const DATE_OPTIONS = useRef(makeDateOptions()).current;
-  const bookingRef   = useRef(`TL-${new Date().getFullYear()}-${String(Math.floor(1000 + Math.random() * 9000))}`).current;
+  const [dateOptions] = useState(makeDateOptions);
+  const [bookingRef] = useState(makeBookingRef);
 
   const [step,      setStep]      = useState<Step>("slot");
-  const [date,      setDate]      = useState(DATE_OPTIONS[0].id);
+  const [date,      setDate]      = useState(() => dateOptions[0].id);
   const [slot,      setSlot]      = useState("");
   const [name,      setName]      = useState("Dawit M.");
   const [phone,     setPhone]     = useState("");
@@ -45,7 +49,7 @@ export default function BookingModal({ provider, onClose, onConfirm }: Props) {
   const STEPS: Step[] = ["slot", "details", "payment", "confirmed"];
   const idx = STEPS.indexOf(step);
 
-  const dateLabel = DATE_OPTIONS.find((d) => d.id === date)?.label ?? "Today";
+  const dateLabel = dateOptions.find((d) => d.id === date)?.label ?? "Today";
 
   function copy() {
     const text = [
@@ -138,7 +142,7 @@ export default function BookingModal({ provider, onClose, onConfirm }: Props) {
               <div>
                 <p className="mb-2 text-xs font-bold uppercase text-[#0A2318]/42">Select date</p>
                 <div className="grid grid-cols-4 gap-2">
-                  {DATE_OPTIONS.map(({ id, label }) => (
+                  {dateOptions.map(({ id, label }) => (
                     <button
                       key={id}
                       type="button"

@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { CalendarCheck, Sparkles, Store } from "lucide-react";
 import { useWellness } from "@/context/WellnessContext";
 import { useMarketFilter, SortMode } from "@/hooks/useMarketFilter";
-import { ExtendedProvider } from "@/lib/market-providers";
+import { ExtendedProvider, extendedProviders } from "@/lib/market-providers";
 import BookingModal from "@/components/market/BookingModal";
 import ProviderCard from "@/components/market/ProviderCard";
 import MarketSidebar from "@/components/market/MarketSidebar";
@@ -19,11 +20,27 @@ const SORT_OPTIONS: { id: SortMode; label: string }[] = [
 ];
 
 export default function MarketPage() {
+  return (
+    <Suspense fallback={null}>
+      <MarketPageContent />
+    </Suspense>
+  );
+}
+
+function MarketPageContent() {
   const { checkIn, bookedProviders, bookProvider, stamps } = useWellness();
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const searchParams = useSearchParams();
+  const linkedProviderId = searchParams.get("provider");
+  const linkedProvider =
+    extendedProviders.find((provider) => provider.id === linkedProviderId) ?? null;
+  const [expandedId, setExpandedId] = useState<string | null>(linkedProvider?.id ?? null);
   const [bookingProvider, setBookingProvider] = useState<ExtendedProvider | null>(null);
+  const [dismissedLinkedProviderId, setDismissedLinkedProviderId] = useState<string | null>(null);
 
   const recommendedCategory =
+    checkIn.redFlags ? "Recovery" :
+    checkIn.womenWellness ? "Recovery" :
+    checkIn.painAreas.length > 0 ? "Movement" :
     checkIn.stress >= 7 ? "Stress" :
     checkIn.movement < 20 ? "Movement" :
     checkIn.bpFocus || checkIn.glucoseFocus ? "Food" : "Recovery";
@@ -34,13 +51,31 @@ export default function MarketPage() {
   function toggleExpand(id: string) { setExpandedId((prev) => (prev === id ? null : id)); }
 
   function initiateBooking(p: ExtendedProvider) { if (!bookedProviders.includes(p.id)) setBookingProvider(p); }
-  function confirmBooking() { if (bookingProvider) bookProvider(bookingProvider.id); }
-  function closeModal() { setBookingProvider(null); setExpandedId(null); }
+
+  const queryBookingProvider =
+    linkedProvider &&
+    dismissedLinkedProviderId !== linkedProvider.id &&
+    !bookedProviders.includes(linkedProvider.id)
+      ? linkedProvider
+      : null;
+  const activeBookingProvider = bookingProvider ?? queryBookingProvider;
+
+  function confirmBooking() {
+    if (activeBookingProvider) bookProvider(activeBookingProvider.id);
+  }
+
+  function closeModal() {
+    if (queryBookingProvider) {
+      setDismissedLinkedProviderId(queryBookingProvider.id);
+    }
+    setBookingProvider(null);
+    setExpandedId(null);
+  }
 
   return (
     <>
-      {bookingProvider && (
-        <BookingModal provider={bookingProvider} onClose={closeModal} onConfirm={confirmBooking} />
+      {activeBookingProvider && (
+        <BookingModal provider={activeBookingProvider} onClose={closeModal} onConfirm={confirmBooking} />
       )}
     <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
 

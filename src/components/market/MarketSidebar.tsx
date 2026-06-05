@@ -34,6 +34,9 @@ export default function MarketSidebar({
   const todayCount = extendedProviders.filter((p) => p.availableToday).length;
 
   const reason =
+    checkIn.redFlags ? "Warning signs are selected, so provider-led recovery options are ranked first." :
+    checkIn.womenWellness ? "Women's wellness mode is on, so private recovery and teleconsult options are prioritised." :
+    checkIn.painAreas.length > 0 ? "Body-map pain is selected, so spine-safe movement and posture services are ranked first." :
     checkIn.stress >= 8 ? "Your stress is high, so these services target nervous system reset." :
     checkIn.stress >= 6 ? "Your stress level suggests relaxation services would help most today." :
     checkIn.movement < 15 ? "Low movement today, so movement services are ranked first for you." :

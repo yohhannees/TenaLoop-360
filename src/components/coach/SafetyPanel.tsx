@@ -38,6 +38,9 @@ export default function SafetyPanel() {
     movement: checkIn.movement,
     foodRisk: foodSignal.risk,
     score,
+    painAreas: checkIn.painAreas.length,
+    redFlags: checkIn.redFlags,
+    womenWellness: checkIn.womenWellness,
   });
   const joined = joinedCircles.includes(circle.id);
   const booked = bookedProviders.includes(provider.id);
@@ -203,12 +206,30 @@ function getRecommendedProvider({
   movement,
   foodRisk,
   score,
+  painAreas,
+  redFlags,
+  womenWellness,
 }: {
   stress: number;
   movement: number;
   foodRisk: string;
   score: number;
+  painAreas: number;
+  redFlags: boolean;
+  womenWellness: boolean;
 }) {
+  if (redFlags) {
+    return providers.find((provider) => provider.id === "kirkos-screening") ?? providers[0];
+  }
+
+  if (womenWellness) {
+    return providers.find((provider) => provider.id === "women-telehealth") ?? providers[0];
+  }
+
+  if (painAreas > 0) {
+    return providers.find((provider) => provider.id === "bole-spine-posture") ?? providers[0];
+  }
+
   const category =
     stress >= 7 ? "Stress" :
     foodRisk === "High" ? "Food" :

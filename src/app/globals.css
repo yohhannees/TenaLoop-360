@@ -114,3 +114,15 @@ textarea {
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
+
+.loop-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .loop-shell {
+    grid-template-columns: 400px minmax(0, 1fr);
+  }
+}

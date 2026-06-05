@@ -1,29 +1,9 @@
 import { CheckIn, PlanItem } from "./types";
-import { clamp } from "./utils";
 import { getFoodSignal } from "./foods";
-
-const MOOD_SCORES: Record<string, number> = { Heavy: 42, Steady: 70, Bright: 90 };
-const SUPPORT_SCORES: Record<string, number> = { Low: 44, Some: 68, Strong: 88 };
+import { getBodySignal, getPatternSignal, getTenaScoreBreakdown } from "./rooted-body";
 
 export function calculateScore(checkIn: CheckIn): number {
-  const food = getFoodSignal(checkIn.meal);
-  const riskPenalty =
-    (checkIn.bpFocus && food.risk === "High" ? 5 : 0) +
-    (checkIn.glucoseFocus && food.risk !== "Low" ? 4 : 0);
-
-  return clamp(
-    Math.round(
-      (100 - checkIn.stress * 10) * 0.22 +
-        clamp((checkIn.sleep / 8) * 100) * 0.17 +
-        checkIn.energy * 10 * 0.14 +
-        clamp((checkIn.movement / 30) * 100) * 0.14 +
-        food.score * 0.17 +
-        clamp((checkIn.water / 8) * 100) * 0.08 +
-        (MOOD_SCORES[checkIn.mood] ?? 70) * 0.04 +
-        (SUPPORT_SCORES[checkIn.support] ?? 68) * 0.04 -
-        riskPenalty,
-    ),
-  );
+  return getTenaScoreBreakdown(checkIn).overall;
 }
 
 export function getScoreLabel(score: number): string {
@@ -43,12 +23,43 @@ export function getScoreColor(score: number): string {
 export function buildPlan(checkIn: CheckIn, score: number): PlanItem[] {
   const food = getFoodSignal(checkIn.meal);
   const plan: PlanItem[] = [];
+  const bodySignal = getBodySignal(checkIn);
+  const painAreas = checkIn.painAreas ?? [];
+  const womenWellness = checkIn.womenWellness ?? false;
+  const cycleContext = checkIn.cycleContext ?? "None";
 
   plan.push(
     checkIn.stress >= 7
-      ? { title: "Mind reset", detail: "Do a 3-minute box-breathing reset before the next task.", stamp: "Mind" }
+      ? { title: "Efoy reset", detail: "Do a 3-minute Efoy breathing reset before the next task.", stamp: "Mind" }
       : { title: "Mind maintain", detail: "Protect one quiet 10-minute block before the afternoon push.", stamp: "Mind" },
   );
+
+  if (painAreas.length > 0) {
+    plan.push({
+      title: "Body map",
+      detail: `${bodySignal}. Use gentle mobility and avoid deep twisting if pain is active.`,
+      stamp: "Move",
+    });
+  }
+
+  if (womenWellness && cycleContext !== "None") {
+    plan.push({
+      title: "Cycle-aware mode",
+      detail:
+        cycleContext === "Pregnant" || cycleContext === "Postpartum"
+          ? "Keep guidance gentle and refer to a licensed professional for severe or unusual symptoms."
+          : "Keep today's routine gentle, reduce sugar in coffee, and choose iron-friendly local foods.",
+      stamp: "Health",
+    });
+  }
+
+  if (checkIn.redFlags) {
+    plan.push({
+      title: "Refer for care",
+      detail: "Warning signs are selected. This is a provider referral moment, not a self-treatment moment.",
+      stamp: "Health",
+    });
+  }
 
   if (checkIn.sleep < 6) {
     plan.push({ title: "Sleep repair", detail: "Cut late coffee, set a 20-minute wind-down, and keep the room cool.", stamp: "Health" });
@@ -70,12 +81,26 @@ export function buildPlan(checkIn: CheckIn, score: number): PlanItem[] {
 export function coachReply(input: string, checkIn: CheckIn, score: number): string {
   const text = input.toLowerCase();
   const food = getFoodSignal(checkIn.meal);
+  const bodySignal = getBodySignal(checkIn);
+  const patternSignal = getPatternSignal(checkIn);
 
   const asksForPlan = text.includes("plan") || text.includes("reset") || text.includes("what should i do") || text.includes("help me");
   const asksForSupport = text.includes("circle") || text.includes("support") || text.includes("provider") || text.includes("book") || text.includes("therapy") || text.includes("counsel");
   const asksForFood = text.includes("eat") || text.includes("food") || text.includes("meal") || text.includes("injera") || text.includes("coffee") || text.includes("sugar");
   const asksForSleep = text.includes("sleep") || text.includes("night") || text.includes("bed");
   const asksForMovement = text.includes("move") || text.includes("walk") || text.includes("exercise") || text.includes("body");
+  const asksForBody =
+    text.includes("neck") ||
+    text.includes("shoulder") ||
+    text.includes("back") ||
+    text.includes("pain") ||
+    text.includes("posture");
+  const asksForCycle =
+    text.includes("period") ||
+    text.includes("cycle") ||
+    text.includes("pregnant") ||
+    text.includes("postpartum") ||
+    text.includes("cramp");
   const crisisLanguage =
     text.includes("kill myself") ||
     text.includes("suicide") ||
@@ -99,6 +124,47 @@ export function coachReply(input: string, checkIn: CheckIn, score: number): stri
       "Right now: move away from anything you could use to hurt yourself, contact a trusted person, and use local emergency or crisis support if you might act on these thoughts.",
       "",
       "For the next 2 minutes, stay with one simple action: feet on the floor, one hand on your chest, inhale for 4, exhale for 6. Then message or call one real person. You do not need to handle this alone.",
+    ].join("\n");
+  }
+
+  if (checkIn.redFlags) {
+    return [
+      `Your TenaScore is ${score}. ${bodySignal}.`,
+      "",
+      "Because warning signs were selected, keep this conservative: skip intense self-care and contact a licensed provider promptly.",
+      "",
+      "TenaLoop detects wellness patterns and routes support. It does not diagnose spine, mental health, or women's health conditions.",
+    ].join("\n");
+  }
+
+  if (asksForBody) {
+    return [
+      `Your TenaScore is ${score}. ${bodySignal}.`,
+      "",
+      `Pattern detected: ${patternSignal}`,
+      "",
+      "Do this now:",
+      "1. Inhale, relax your shoulders, and exhale slowly: Efoy.",
+      "2. Do shoulder rolls and gentle chin tucks. Skip deep twisting.",
+      "3. Take two walking breaks and change your sitting position.",
+      "",
+      "If pain continues for more than a few days or includes numbness or weakness, book a spine/posture check.",
+    ].join("\n");
+  }
+
+  if (asksForCycle && (checkIn.womenWellness ?? false)) {
+    return [
+      `Your TenaScore is ${score}. Women's wellness mode is on.`,
+      "",
+      `Pattern detected: ${patternSignal}`,
+      "",
+      "Today's gentle loop:",
+      "1. Three-minute Efoy breathing.",
+      "2. Light stretching only; avoid intense twisting.",
+      "3. Choose shiro or misir with gomen/salad and moderate injera.",
+      "4. Use a private circle or licensed provider if symptoms feel severe or unusual.",
+      "",
+      "This is general wellness guidance, not medical advice.",
     ].join("\n");
   }
 
