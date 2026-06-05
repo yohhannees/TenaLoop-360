@@ -10,9 +10,9 @@ export default function MoodPulse() {
   const [mood, setMood] = useState<CircleMood>("Okay");
 
   return (
-    <section className="rounded-md border border-[#d8e4dc] bg-white p-4 shadow-sm">
-      <p className="text-sm font-medium uppercase text-[#64756b]">Group check-in</p>
-      <h2 className="text-2xl font-semibold">Anonymous mood pulse</h2>
+    <section className="rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-5 shadow-sm shadow-[#0A2318]/5">
+      <p className="text-xs font-bold uppercase text-[#8C6246]">Group check-in</p>
+      <h2 className="font-serif text-3xl text-[#0A2318]">Anonymous mood pulse</h2>
 
       <div className="mt-5">
         <Segmented
@@ -29,7 +29,7 @@ export default function MoodPulse() {
         <PulseRow label="Good" value={mood === "Good" ? 58 : 33} />
       </div>
 
-      <div className="mt-5 rounded-md bg-[#f8eadf] p-3 text-sm leading-6 text-[#72401f]">
+      <div className="mt-5 rounded-[1.25rem] bg-[#D4C1A0]/35 p-3 text-sm leading-6 text-[#0A2318]/76">
         Moderator prompt: share one habit that helped your sleep or stress this week.
       </div>
     </section>

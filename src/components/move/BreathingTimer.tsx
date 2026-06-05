@@ -13,11 +13,11 @@ const BOX_SEQUENCE: { phase: Phase; label: string; duration: number }[] = [
 ];
 
 const PHASE_COLORS: Record<Phase | "idle", string> = {
-  inhale: "#0f6b52",
-  "hold-in": "#1d84a6",
-  exhale: "#c47a16",
-  "hold-out": "#7c4f9e",
-  idle: "#64756b",
+  inhale: "#0A2318",
+  "hold-in": "#8C6246",
+  exhale: "#D4C1A0",
+  "hold-out": "#724F38",
+  idle: "#8A978D",
 };
 
 export default function BreathingTimer() {
@@ -81,11 +81,11 @@ export default function BreathingTimer() {
   }, [running, award]);
 
   return (
-    <div className="rounded-md border border-[#d8e4dc] bg-white p-4 shadow-sm">
-      <p className="text-sm font-medium uppercase text-[#64756b]">Breathing reset</p>
-      <h2 className="text-2xl font-semibold">Box breathing - 3 cycles</h2>
-      <p className="mt-1 text-sm text-[#52665c]">
-        Inhale 4 - Hold 4 - Exhale 4 - Hold 4. Three cycles takes 48 seconds.
+    <div className="rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-5 shadow-sm shadow-[#0A2318]/5">
+      <p className="text-xs font-bold uppercase text-[#8C6246]">Breathing reset</p>
+      <h2 className="font-serif text-3xl text-[#0A2318]">Box breathing - 3 cycles</h2>
+      <p className="mt-1 text-sm text-[#0A2318]/64">
+        Inhale 4, hold 4, exhale 4, hold 4. Three cycles takes 48 seconds.
       </p>
 
       <div className="mt-6 flex flex-col items-center gap-4">
@@ -93,29 +93,29 @@ export default function BreathingTimer() {
         <div
           className="relative grid h-36 w-36 place-items-center rounded-full transition-all duration-1000"
           style={{
-            background: `conic-gradient(${color} ${progress * 3.6}deg, #e5eee8 0deg)`,
+            background: `conic-gradient(${color} ${progress * 3.6}deg, rgb(10 35 24 / 0.12) 0deg)`,
           }}
         >
-          <div className="grid h-24 w-24 place-items-center rounded-full bg-white text-center">
+          <div className="grid h-24 w-24 place-items-center rounded-full bg-[#E5EAE3] text-center">
             {done ? (
-              <span className="text-sm font-semibold text-[#0f6b52]">Done +20 pts</span>
+              <span className="text-sm font-semibold text-[#8C6246]">Done +20 pts</span>
             ) : running ? (
               <>
-                <span className="text-xs font-medium text-[#64756b]">{current.label}</span>
-                <span className="text-3xl font-semibold" style={{ color }}>{secondsLeft}</span>
+                <span className="text-xs font-medium text-[#0A2318]/58">{current.label}</span>
+                <span className="font-serif text-4xl" style={{ color }}>{secondsLeft}</span>
               </>
             ) : (
-              <span className="text-sm font-medium text-[#64756b]">Ready</span>
+              <span className="text-sm font-medium text-[#0A2318]/58">Ready</span>
             )}
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-sm text-[#64756b]">
+        <div className="flex items-center gap-2 text-sm text-[#0A2318]/58">
           {Array.from({ length: TARGET_CYCLES }).map((_, i) => (
             <span
               key={i}
               className="h-2.5 w-2.5 rounded-full"
-              style={{ backgroundColor: i < cyclesCompleted ? "#0f6b52" : "#e5eee8" }}
+              style={{ backgroundColor: i < cyclesCompleted ? "#8C6246" : "rgb(10 35 24 / 0.12)" }}
             />
           ))}
           <span className="ml-1">{cyclesCompleted}/{TARGET_CYCLES} cycles</span>
@@ -126,7 +126,7 @@ export default function BreathingTimer() {
             <button
               type="button"
               onClick={start}
-              className="h-11 rounded-md bg-[#0f6b52] px-6 text-sm font-semibold text-white transition hover:bg-[#0b5944]"
+              className="h-11 rounded-full bg-[#0A2318] px-6 text-sm font-semibold text-[#E8EDE7] transition hover:bg-[#1A3A2A]"
             >
               Start reset
             </button>
@@ -135,7 +135,7 @@ export default function BreathingTimer() {
             <button
               type="button"
               onClick={stop}
-              className="h-11 rounded-md border border-[#cddbd3] px-6 text-sm font-semibold text-[#33483e]"
+              className="h-11 rounded-full border border-[#0A2318]/18 px-6 text-sm font-semibold text-[#0A2318]"
             >
               Stop
             </button>
@@ -144,7 +144,7 @@ export default function BreathingTimer() {
             <button
               type="button"
               onClick={start}
-              className="h-11 rounded-md border border-[#0f6b52] px-6 text-sm font-semibold text-[#0f6b52]"
+              className="h-11 rounded-full border border-[#0A2318] px-6 text-sm font-semibold text-[#0A2318] transition hover:bg-[#0A2318] hover:text-[#E8EDE7]"
             >
               Run again
             </button>

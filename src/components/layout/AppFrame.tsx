@@ -17,7 +17,7 @@ export default function AppFrame({ children }: { children: React.ReactNode }) {
     <>
       <AppHeader />
       <main className="w-full flex-1 bg-[#E5EAE3] px-4 py-6 text-[#0A2318] sm:px-6 lg:px-8">
-        <div className="mx-auto w-full max-w-7xl">{children}</div>
+        <div className="mx-auto w-full max-w-7xl min-w-0">{children}</div>
       </main>
     </>
   );

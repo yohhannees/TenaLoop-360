@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { useWellness } from "@/context/WellnessContext";
 import { cn } from "@/lib/utils";
 
@@ -22,18 +23,18 @@ const ROUTINES: Routine[] = [
       "Stand up and roll your shoulders backward 10 times.",
       "Do 10 slow bodyweight squats, keeping knees over toes.",
       "Reach both arms overhead and hold for 10 seconds.",
-      "Do 2 minutes of slow nasal breathing — in for 4, out for 4.",
+      "Do 2 minutes of slow nasal breathing - in for 4, out for 4.",
       "Walk to a window, look outside for 30 seconds, then return.",
     ],
   },
   {
     id: "beginner-walk",
     title: "Beginner walking challenge",
-    duration: "15–20 min",
+    duration: "15-20 min",
     type: "Movement",
     steps: [
       "Put on comfortable shoes and step outside.",
-      "Walk at a comfortable pace — not a rush, not a stroll.",
+      "Walk at a comfortable pace - not a rush, not a stroll.",
       "Keep your phone in your pocket for the first 10 minutes.",
       "Notice your breathing and aim for nasal breathing throughout.",
       "Return slowly and drink a full glass of water.",
@@ -80,10 +81,12 @@ export default function WorkoutRoutines() {
   }
 
   return (
-    <section className="rounded-md border border-[#d8e4dc] bg-white p-4 shadow-sm">
-      <p className="text-sm font-medium uppercase text-[#64756b]">TenaMove</p>
-      <h2 className="text-2xl font-semibold">Movement routines</h2>
-      <p className="mt-1 text-sm text-[#52665c]">No gym required. Pick one and earn your Move stamp.</p>
+    <section className="rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-5 shadow-sm shadow-[#0A2318]/5">
+      <p className="text-xs font-bold uppercase text-[#8C6246]">TenaMove</p>
+      <h2 className="font-serif text-3xl text-[#0A2318]">Movement routines</h2>
+      <p className="mt-1 text-sm text-[#0A2318]/64">
+        No gym required. Pick one and earn your Move stamp.
+      </p>
 
       <div className="mt-5 grid gap-3">
         {ROUTINES.map((routine) => {
@@ -94,8 +97,10 @@ export default function WorkoutRoutines() {
             <div
               key={routine.id}
               className={cn(
-                "rounded-md border p-3 transition",
-                isDone ? "border-[#0f6b52] bg-[#eef6f2]" : "border-[#dde8e1] bg-[#fbfdfb]",
+                "rounded-[1.5rem] border p-4 transition",
+                isDone
+                  ? "border-[#0A2318] bg-[#0A2318] text-[#E8EDE7]"
+                  : "border-[#0A2318]/10 bg-[#E5EAE3]",
               )}
             >
               <button
@@ -103,30 +108,69 @@ export default function WorkoutRoutines() {
                 onClick={() => setExpanded(isOpen ? null : routine.id)}
                 className="flex w-full items-start justify-between gap-3 text-left"
               >
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="font-semibold text-[#14231d]">{routine.title}</span>
-                    <span className="rounded-md bg-[#ecf2fb] px-2 py-0.5 text-xs font-medium text-[#28506f]">
-                      {routine.duration}
-                    </span>
-                    <span className="rounded-md bg-[#f8eadf] px-2 py-0.5 text-xs font-medium text-[#88471f]">
-                      {routine.type}
-                    </span>
-                    {isDone && (
-                      <span className="rounded-md bg-[#eef6f2] px-2 py-0.5 text-xs font-semibold text-[#0f6b52]">
-                        Done
-                      </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    className={cn(
+                      "font-semibold",
+                      isDone ? "text-[#E8EDE7]" : "text-[#0A2318]",
                     )}
-                  </div>
+                  >
+                    {routine.title}
+                  </span>
+                  <span
+                    className={cn(
+                      "rounded-full px-2.5 py-0.5 text-xs font-medium",
+                      isDone
+                        ? "bg-[#E8EDE7]/10 text-[#D4C1A0]"
+                        : "bg-[#D4C1A0]/35 text-[#0A2318]",
+                    )}
+                  >
+                    {routine.duration}
+                  </span>
+                  <span
+                    className={cn(
+                      "rounded-full px-2.5 py-0.5 text-xs font-medium",
+                      isDone
+                        ? "bg-[#E8EDE7]/10 text-[#E8EDE7]/78"
+                        : "bg-[#E8EDE7] text-[#8C6246]",
+                    )}
+                  >
+                    {routine.type}
+                  </span>
+                  {isDone && (
+                    <span className="rounded-full bg-[#D4C1A0] px-2.5 py-0.5 text-xs font-semibold text-[#0A2318]">
+                      Done
+                    </span>
+                  )}
                 </div>
-                <span className="mt-0.5 shrink-0 text-sm text-[#64756b]">{isOpen ? "▲" : "▼"}</span>
+                <ChevronDown
+                  size={18}
+                  className={cn(
+                    "mt-0.5 shrink-0 transition",
+                    isOpen && "rotate-180",
+                    isDone ? "text-[#E8EDE7]/70" : "text-[#0A2318]/58",
+                  )}
+                />
               </button>
 
               {isOpen && (
                 <div className="mt-3 grid gap-2">
                   {routine.steps.map((step, i) => (
-                    <div key={i} className="flex gap-3 text-sm leading-6 text-[#52665c]">
-                      <span className="mt-0.5 h-5 w-5 shrink-0 rounded-full bg-[#eef6f2] text-center text-xs font-semibold text-[#0f6b52]">
+                    <div
+                      key={step}
+                      className={cn(
+                        "flex gap-3 text-sm leading-6",
+                        isDone ? "text-[#E8EDE7]/68" : "text-[#0A2318]/64",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "mt-0.5 h-5 w-5 shrink-0 rounded-full text-center text-xs font-semibold",
+                          isDone
+                            ? "bg-[#E8EDE7]/10 text-[#D4C1A0]"
+                            : "bg-[#0A2318] text-[#E8EDE7]",
+                        )}
+                      >
                         {i + 1}
                       </span>
                       {step}
@@ -136,7 +180,7 @@ export default function WorkoutRoutines() {
                     <button
                       type="button"
                       onClick={() => complete(routine.id)}
-                      className="mt-2 h-10 rounded-md bg-[#1d84a6] px-4 text-sm font-semibold text-white transition hover:bg-[#1670a0]"
+                      className="mt-2 h-10 rounded-full bg-[#8C6246] px-4 text-sm font-semibold text-[#E8EDE7] transition hover:bg-[#724F38]"
                     >
                       Mark complete - earn 18 pts
                     </button>

@@ -20,7 +20,7 @@ export default function FoodPage() {
   }
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[0.95fr_1.05fr]">
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[0.95fr_1.05fr]">
       <FoodLogger
         foodText={foodText}
         setFoodText={setFoodText}

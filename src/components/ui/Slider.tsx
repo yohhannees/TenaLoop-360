@@ -21,7 +21,7 @@ export default function Slider({ label, min, max, value, onChange }: Props) {
         max={max}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="h-2 accent-[#8C6246]"
+        className="h-2 w-full min-w-0 accent-[#8C6246]"
       />
     </label>
   );

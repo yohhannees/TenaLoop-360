@@ -7,10 +7,10 @@ export const metadata = { title: "Dashboard - TenaLoop 360" };
 
 export default function DashboardPage() {
   return (
-    <div className="grid gap-5">
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5">
       <ScoreTrend />
       <PatternInsights />
-      <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[0.9fr_1.1fr]">
         <PassportStamps />
         <BusinessMetrics />
       </div>

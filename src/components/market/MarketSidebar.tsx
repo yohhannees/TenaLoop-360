@@ -14,11 +14,11 @@ type Props = {
 
 export default function MarketSidebar({ filter, setFilter, recommendedCategory }: Props) {
   return (
-    <section className="rounded-md border border-[#d8e4dc] bg-white p-4 shadow-sm">
-      <p className="text-sm font-medium uppercase text-[#64756b]">TenaMarket</p>
-      <h2 className="text-2xl font-semibold">Wellness booking</h2>
+    <section className="rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-5 shadow-sm shadow-[#0A2318]/5">
+      <p className="text-xs font-bold uppercase text-[#8C6246]">TenaMarket</p>
+      <h2 className="font-serif text-3xl text-[#0A2318]">Wellness booking</h2>
 
-      <div className="mt-5 rounded-md bg-[#eef6f2] p-3 text-sm leading-6 text-[#284237]">
+      <div className="mt-5 rounded-[1.25rem] bg-[#D4C1A0]/35 p-3 text-sm leading-6 text-[#0A2318]/76">
         AI recommendation: prioritize{" "}
         <span className="font-semibold">{recommendedCategory.toLowerCase()}</span> services for
         your current TenaScore pattern.
@@ -31,10 +31,10 @@ export default function MarketSidebar({ filter, setFilter, recommendedCategory }
             type="button"
             onClick={() => setFilter(cat)}
             className={cn(
-              "h-10 rounded-md border px-3 text-sm font-semibold transition",
+              "h-10 rounded-full border px-3 text-sm font-semibold transition",
               filter === cat
-                ? "border-[#0f6b52] bg-[#0f6b52] text-white"
-                : "border-[#d7e4dc] bg-white text-[#33483e] hover:border-[#0f6b52]",
+                ? "border-[#0A2318] bg-[#0A2318] text-[#E8EDE7]"
+                : "border-[#0A2318]/12 bg-[#E5EAE3] text-[#0A2318]/72 hover:border-[#8C6246] hover:text-[#0A2318]",
             )}
           >
             {cat}
@@ -42,9 +42,9 @@ export default function MarketSidebar({ filter, setFilter, recommendedCategory }
         ))}
       </div>
 
-      <div className="mt-5 rounded-md border border-[#d8e4dc] p-3">
-        <p className="font-semibold">Provider tools</p>
-        <p className="mt-2 text-sm leading-6 text-[#52665c]">
+      <div className="mt-5 rounded-[1.25rem] border border-[#0A2318]/10 bg-[#E5EAE3] p-3">
+        <p className="font-semibold text-[#0A2318]">Provider tools</p>
+        <p className="mt-2 text-sm leading-6 text-[#0A2318]/64">
           Listings, booking intake, discount campaigns, client trends, and wellness packages for
           small local providers.
         </p>

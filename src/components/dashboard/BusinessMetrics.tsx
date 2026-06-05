@@ -7,7 +7,7 @@ export default function BusinessMetrics() {
   const { bookedProviders, joinedCircles } = useWellness();
 
   return (
-    <div className="grid gap-5 md:grid-cols-2">
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5 md:grid-cols-2">
       <BusinessCard
         label="Corporate wellness"
         title="Team wellness score"

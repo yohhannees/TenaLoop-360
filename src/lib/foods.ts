@@ -118,7 +118,7 @@ export const foodLibrary: FoodSignal[] = [
     score: 36,
     risk: "High",
     insight: "Skipping a meal and only drinking sugary coffee increases stress hormones and energy crashes.",
-    swap: "Eat a small balanced meal — ful, egg, or shiro — before or with coffee.",
+    swap: "Eat a small balanced meal - ful, egg, or shiro - before or with coffee.",
     tags: ["skip meal", "sugar watch", "energy crash"],
   },
 ];

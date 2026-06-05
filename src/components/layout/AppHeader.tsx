@@ -33,8 +33,8 @@ export default function AppHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#0A2318]/10 bg-[#E5EAE3]/92 backdrop-blur-xl">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="grid gap-4 py-4">
+      <div className="mx-auto max-w-7xl min-w-0 px-4 sm:px-6 lg:px-8">
+        <div className="grid min-w-0 gap-4 py-4">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <Link href="/dashboard" className="flex items-center gap-3">
               <span className="grid h-11 w-11 place-items-center rounded-full bg-[#0A2318] text-[#E8EDE7] shadow-sm shadow-[#0A2318]/10">
@@ -48,18 +48,18 @@ export default function AppHeader() {
               </span>
             </Link>
 
-            <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+            <div className="flex w-full min-w-0 flex-wrap items-center gap-2 lg:w-auto lg:justify-end">
               <div className="flex items-center gap-2">
                 <MetricPill label="Score" value={score.toString()} />
                 <MetricPill label="Points" value={points.toString()} warm />
               </div>
 
-              <label className="flex h-10 items-center gap-2 rounded-full border border-[#0A2318]/10 bg-[#E8EDE7]/85 px-3 text-sm text-[#0A2318]/72 shadow-sm shadow-[#0A2318]/5">
+              <label className="flex h-10 min-w-0 max-w-[158px] flex-1 items-center gap-2 rounded-full border border-[#0A2318]/10 bg-[#E8EDE7]/85 px-3 text-sm text-[#0A2318]/72 shadow-sm shadow-[#0A2318]/5 sm:flex-none">
                 <Globe2 size={16} className="text-[#8C6246]" />
                 <select
                   value={language}
                   onChange={(event) => setLanguage(event.target.value as typeof language)}
-                  className="bg-transparent text-sm outline-none"
+                  className="min-w-0 flex-1 bg-transparent text-sm outline-none"
                 >
                   <option>English</option>
                   <option>Amharic-ready</option>
@@ -68,14 +68,16 @@ export default function AppHeader() {
 
               <Link
                 href="/signup"
+                aria-label="Upgrade"
                 className="inline-flex h-10 items-center gap-2 rounded-full bg-[#8C6246] px-4 text-sm font-semibold text-[#E8EDE7] shadow-sm shadow-[#0A2318]/10 transition hover:bg-[#724F38]"
               >
                 <Sparkles size={16} />
-                Upgrade
+                <span className="hidden sm:inline">Upgrade</span>
               </Link>
 
               <Link
                 href="/"
+                aria-label="Sign out"
                 className="inline-flex h-10 items-center gap-2 rounded-full border border-[#0A2318]/12 bg-[#E8EDE7]/85 px-4 text-sm font-semibold text-[#0A2318]/72 shadow-sm shadow-[#0A2318]/5 transition hover:border-[#0A2318]/35 hover:text-[#0A2318]"
               >
                 <LogOut size={16} />
@@ -84,7 +86,7 @@ export default function AppHeader() {
             </div>
           </div>
 
-          <nav className="flex gap-1.5 overflow-x-auto rounded-full border border-[#0A2318]/10 bg-[#E8EDE7]/78 p-1 shadow-sm shadow-[#0A2318]/5">
+          <nav className="no-scrollbar flex w-full min-w-0 gap-1.5 overflow-x-auto rounded-full border border-[#0A2318]/10 bg-[#E8EDE7]/78 p-1 shadow-sm shadow-[#0A2318]/5">
             {NAV_LINKS.map(({ href, label, icon: Icon }) => (
               <Link
                 key={href}
