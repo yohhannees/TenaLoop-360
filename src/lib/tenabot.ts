@@ -9,7 +9,8 @@ import {
 } from "./rooted-body";
 import { getScoreLabel } from "./score";
 
-export const DEFAULT_OPENAI_MODEL = "gpt-5.4-mini";
+export const DEFAULT_OPENAI_MODEL = "gpt-5-mini";
+export const DEFAULT_GEMINI_MODEL = "gemini-2.5-flash";
 
 export const TENABOT_INSTRUCTIONS = [
   "You are TenaBot, the AI wellness coach inside TenaLoop 360.",
@@ -49,6 +50,24 @@ export function buildTenaBotRequestInput({
   };
 }
 
+export function buildGeminiTenaBotRequestInput(input: TenaBotRequestInput) {
+  const request = buildTenaBotRequestInput(input);
+
+  return {
+    systemInstruction: {
+      parts: [{ text: request.instructions }],
+    },
+    contents: request.input.map((msg) => ({
+      role: msg.role === "assistant" ? "model" : "user",
+      parts: [{ text: msg.content }],
+    })),
+    generationConfig: {
+      maxOutputTokens: 700,
+      temperature: 0.65,
+    },
+  };
+}
+
 export function extractResponseText(data: unknown): string {
   if (!data || typeof data !== "object") return "";
 
@@ -58,6 +77,32 @@ export function extractResponseText(data: unknown): string {
   const output = (data as { output?: unknown }).output;
   const textParts = collectOutputText(output);
   return textParts.join("\n").trim();
+}
+
+export function extractGeminiResponseText(data: unknown): string {
+  if (!data || typeof data !== "object") return "";
+
+  const candidates = (data as { candidates?: unknown }).candidates;
+  if (!Array.isArray(candidates)) return "";
+
+  return candidates
+    .flatMap((candidate) => {
+      if (!candidate || typeof candidate !== "object") return [];
+      const content = (candidate as { content?: unknown }).content;
+      if (!content || typeof content !== "object") return [];
+      const parts = (content as { parts?: unknown }).parts;
+      if (!Array.isArray(parts)) return [];
+
+      return parts
+        .map((part) =>
+          part && typeof part === "object" && typeof (part as { text?: unknown }).text === "string"
+            ? (part as { text: string }).text
+            : "",
+        )
+        .filter(Boolean);
+    })
+    .join("\n")
+    .trim();
 }
 
 export function modelSupportsReasoning(model: string): boolean {
