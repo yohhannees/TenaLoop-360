@@ -1,7 +1,7 @@
 import CheckInForm from "@/components/loop/CheckInForm";
 import ActionPlan from "@/components/loop/ActionPlan";
 
-export const metadata = { title: "Daily Loop · TenaLoop 360" };
+export const metadata = { title: "Daily Loop - TenaLoop 360" };
 
 export default function LoopPage() {
   return (

@@ -11,7 +11,7 @@ export default function Toggle({ label, checked, onChange }: Props) {
       className={cn(
         "flex h-11 items-center justify-between gap-3 rounded-md border px-3 text-sm font-semibold transition",
         checked
-          ? "border-[#0f6b52] bg-[#eef6f2] text-[#0f6b52]"
+          ? "border-[#0f6b52] bg-[#eef6f2] text-[#0f6b52] shadow-sm"
           : "border-[#d7e4dc] bg-white text-[#33483e] hover:border-[#0f6b52]",
       )}
     >

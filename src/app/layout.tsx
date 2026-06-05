@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { WellnessProvider } from "@/context/WellnessContext";
-import AppHeader from "@/components/layout/AppHeader";
+import AppFrame from "@/components/layout/AppFrame";
 
 export const metadata: Metadata = {
   title: "TenaLoop 360",
@@ -12,12 +12,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="h-full antialiased">
-      <body className="flex min-h-full flex-col bg-[#f3f8f5] text-[#15231d]">
+      <body className="flex min-h-full flex-col bg-[#f6f8f5] text-[#15231d]">
         <WellnessProvider>
-          <AppHeader />
-          <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-5 sm:px-6 lg:px-8">
-            {children}
-          </main>
+          <AppFrame>{children}</AppFrame>
         </WellnessProvider>
       </body>
     </html>

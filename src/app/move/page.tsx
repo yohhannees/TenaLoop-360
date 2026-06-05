@@ -1,7 +1,7 @@
 import BreathingTimer from "@/components/move/BreathingTimer";
 import WorkoutRoutines from "@/components/move/WorkoutRoutines";
 
-export const metadata = { title: "TenaMove · TenaLoop 360" };
+export const metadata = { title: "TenaMove - TenaLoop 360" };
 
 export default function MovePage() {
   return (

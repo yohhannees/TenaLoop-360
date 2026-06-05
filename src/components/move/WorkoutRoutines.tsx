@@ -138,7 +138,7 @@ export default function WorkoutRoutines() {
                       onClick={() => complete(routine.id)}
                       className="mt-2 h-10 rounded-md bg-[#1d84a6] px-4 text-sm font-semibold text-white transition hover:bg-[#1670a0]"
                     >
-                      Mark complete · earn 18 pts
+                      Mark complete - earn 18 pts
                     </button>
                   )}
                 </div>

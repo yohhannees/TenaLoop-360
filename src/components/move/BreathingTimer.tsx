@@ -83,9 +83,9 @@ export default function BreathingTimer() {
   return (
     <div className="rounded-md border border-[#d8e4dc] bg-white p-4 shadow-sm">
       <p className="text-sm font-medium uppercase text-[#64756b]">Breathing reset</p>
-      <h2 className="text-2xl font-semibold">Box breathing · 3 cycles</h2>
+      <h2 className="text-2xl font-semibold">Box breathing - 3 cycles</h2>
       <p className="mt-1 text-sm text-[#52665c]">
-        Inhale 4 · Hold 4 · Exhale 4 · Hold 4. Three cycles takes 48 seconds.
+        Inhale 4 - Hold 4 - Exhale 4 - Hold 4. Three cycles takes 48 seconds.
       </p>
 
       <div className="mt-6 flex flex-col items-center gap-4">

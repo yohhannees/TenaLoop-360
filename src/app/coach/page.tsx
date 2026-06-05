@@ -1,7 +1,7 @@
 import ChatWindow from "@/components/coach/ChatWindow";
 import SafetyPanel from "@/components/coach/SafetyPanel";
 
-export const metadata = { title: "TenaBot · TenaLoop 360" };
+export const metadata = { title: "TenaBot - TenaLoop 360" };
 
 export default function CoachPage() {
   return (

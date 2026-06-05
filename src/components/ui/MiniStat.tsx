@@ -1,10 +1,31 @@
-type Props = { label: string; value: string; tone: string };
+import { cn } from "@/lib/utils";
 
-export default function MiniStat({ label, value, tone }: Props) {
+type Props = {
+  label: string;
+  value: string;
+  tone: string;
+  variant?: "light" | "dark";
+};
+
+export default function MiniStat({ label, value, tone, variant = "light" }: Props) {
   return (
-    <div className="rounded-md border border-[#d8e4dc] bg-[#fbfdfb] p-3">
-      <p className="text-xs font-medium uppercase text-[#64756b]">{label}</p>
-      <p className="mt-1 text-2xl font-semibold" style={{ color: tone }}>
+    <div
+      className={cn(
+        "rounded-[1.25rem] border p-3",
+        variant === "dark"
+          ? "border-[#E8EDE7]/12 bg-[#E8EDE7]/8"
+          : "border-[#0A2318]/10 bg-[#E8EDE7]",
+      )}
+    >
+      <p
+        className={cn(
+          "text-xs font-medium uppercase",
+          variant === "dark" ? "text-[#E8EDE7]/62" : "text-[#0A2318]/58",
+        )}
+      >
+        {label}
+      </p>
+      <p className="mt-1 font-serif text-3xl" style={{ color: tone }}>
         {value}
       </p>
     </div>

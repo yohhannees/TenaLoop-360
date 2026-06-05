@@ -3,7 +3,7 @@ import PassportStamps from "@/components/dashboard/PassportStamps";
 import BusinessMetrics from "@/components/dashboard/BusinessMetrics";
 import PatternInsights from "@/components/dashboard/PatternInsights";
 
-export const metadata = { title: "Dashboard · TenaLoop 360" };
+export const metadata = { title: "Dashboard - TenaLoop 360" };
 
 export default function DashboardPage() {
   return (

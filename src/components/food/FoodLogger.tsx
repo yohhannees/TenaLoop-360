@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent } from "react";
 import { useWellness } from "@/context/WellnessContext";
 import { foodLibrary } from "@/lib/foods";
 import Toggle from "@/components/ui/Toggle";
