@@ -1,8 +1,11 @@
 "use client";
 
 import { useState } from "react";
+import { CalendarCheck, Sparkles, Store } from "lucide-react";
 import { useWellness } from "@/context/WellnessContext";
 import { useMarketFilter, SortMode } from "@/hooks/useMarketFilter";
+import { ExtendedProvider } from "@/lib/market-providers";
+import BookingModal from "@/components/market/BookingModal";
 import ProviderCard from "@/components/market/ProviderCard";
 import MarketSidebar from "@/components/market/MarketSidebar";
 import WellnessPackages from "@/components/market/WellnessPackages";
@@ -18,6 +21,7 @@ const SORT_OPTIONS: { id: SortMode; label: string }[] = [
 export default function MarketPage() {
   const { checkIn, bookedProviders, bookProvider, stamps } = useWellness();
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [bookingProvider, setBookingProvider] = useState<ExtendedProvider | null>(null);
 
   const recommendedCategory =
     checkIn.stress >= 7 ? "Stress" :
@@ -27,11 +31,17 @@ export default function MarketPage() {
   const { filter, setFilter, search, setSearch, sort, setSort, filtered } =
     useMarketFilter(recommendedCategory);
 
-  function toggleExpand(id: string) {
-    setExpandedId((prev) => (prev === id ? null : id));
-  }
+  function toggleExpand(id: string) { setExpandedId((prev) => (prev === id ? null : id)); }
+
+  function initiateBooking(p: ExtendedProvider) { if (!bookedProviders.includes(p.id)) setBookingProvider(p); }
+  function confirmBooking() { if (bookingProvider) bookProvider(bookingProvider.id); }
+  function closeModal() { setBookingProvider(null); setExpandedId(null); }
 
   return (
+    <>
+      {bookingProvider && (
+        <BookingModal provider={bookingProvider} onClose={closeModal} onConfirm={confirmBooking} />
+      )}
     <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
 
       {/* ── LEFT: Sidebar ─────────────────────────────────── */}
@@ -45,6 +55,28 @@ export default function MarketPage() {
 
       {/* ── RIGHT: Results + Packages ─────────────────────── */}
       <div className="grid content-start gap-5">
+        <section className="overflow-hidden rounded-[2rem] border border-[#0A2318]/10 bg-[#0A2318] text-[#E8EDE7] shadow-sm shadow-[#0A2318]/5">
+          <div className="grid gap-5 p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 text-xs font-bold uppercase text-[#D4C1A0]">
+                <Store size={15} />
+                Marketplace command center
+              </div>
+              <h1 className="mt-2 font-serif text-4xl leading-tight">
+                Local care matched to today&apos;s score.
+              </h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-[#E8EDE7]/68">
+                Browse providers, bundles, and same-day slots that connect the
+                TenaScore to real services around Addis.
+              </p>
+            </div>
+            <div className="grid min-w-0 grid-cols-3 gap-2">
+              <MarketStat icon={Sparkles} label="Match" value={recommendedCategory} />
+              <MarketStat icon={CalendarCheck} label="Booked" value={`${bookedProviders.length}`} />
+              <MarketStat icon={Store} label="Stamps" value={`${stamps.length}/6`} />
+            </div>
+          </div>
+        </section>
 
         {/* Sort + results count bar */}
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -92,7 +124,7 @@ export default function MarketPage() {
                 passportStamps={stamps.length}
                 expanded={expandedId === provider.id}
                 onExpand={() => toggleExpand(provider.id)}
-                onBook={() => { bookProvider(provider.id); setExpandedId(null); }}
+                onBook={() => initiateBooking(provider)}
               />
             ))}
           </div>
@@ -102,6 +134,27 @@ export default function MarketPage() {
         <WellnessPackages />
 
       </div>
+    </div>
+    </>
+  );
+}
+
+function MarketStat({
+  icon: Icon,
+  label,
+  value,
+}: {
+  icon: typeof Store;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="min-w-0 rounded-2xl border border-[#E8EDE7]/12 px-3 py-2">
+      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-[#D4C1A0]/72">
+        <Icon size={13} />
+        {label}
+      </div>
+      <p className="mt-1 truncate text-sm font-semibold text-[#E8EDE7]">{value}</p>
     </div>
   );
 }

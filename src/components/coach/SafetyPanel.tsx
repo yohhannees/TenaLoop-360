@@ -44,8 +44,8 @@ export default function SafetyPanel() {
   const supportLevel = score < 55 || checkIn.stress >= 8 ? "High attention" : score < 70 ? "Watch" : "Steady";
 
   return (
-    <aside className="grid min-w-0 content-start gap-5">
-      <section className="min-w-0 overflow-hidden rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-4 shadow-sm shadow-[#0A2318]/5 sm:p-5">
+    <aside className="grid min-w-0 max-w-full content-start gap-5">
+      <section className="min-w-0 max-w-full overflow-hidden rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-4 shadow-sm shadow-[#0A2318]/5 sm:p-5">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
             <p className="text-xs font-bold uppercase text-[#8C6246]">Support layer</p>
@@ -68,21 +68,21 @@ export default function SafetyPanel() {
           {plan.slice(0, 3).map((item, index) => (
             <div
               key={item.title}
-              className="grid grid-cols-[auto_minmax(0,1fr)] gap-3 rounded-[1.25rem] border border-[#0A2318]/10 bg-[#E5EAE3] p-3"
+              className="grid min-w-0 max-w-full grid-cols-[auto_minmax(0,1fr)] gap-3 rounded-[1.25rem] border border-[#0A2318]/10 bg-[#E5EAE3] p-3"
             >
               <span className="grid h-7 w-7 place-items-center rounded-full bg-[#0A2318] text-xs font-bold text-[#E8EDE7]">
                 {index + 1}
               </span>
               <div className="min-w-0">
-                <p className="font-semibold text-[#0A2318]">{item.title}</p>
-                <p className="mt-1 text-sm leading-6 text-[#0A2318]/64">{item.detail}</p>
+                <p className="break-words font-semibold text-[#0A2318]">{item.title}</p>
+                <p className="mt-1 break-words text-sm leading-6 text-[#0A2318]/64">{item.detail}</p>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="min-w-0 overflow-hidden rounded-[2rem] border border-[#0A2318]/10 bg-[#0A2318] p-4 text-[#E8EDE7] shadow-sm shadow-[#0A2318]/5 sm:p-5">
+      <section className="min-w-0 max-w-full overflow-hidden rounded-[2rem] border border-[#0A2318]/10 bg-[#0A2318] p-4 text-[#E8EDE7] shadow-sm shadow-[#0A2318]/5 sm:p-5">
         <div className="flex items-start gap-3">
           <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#D4C1A0] text-[#0A2318]">
             <Users size={20} />
@@ -95,7 +95,7 @@ export default function SafetyPanel() {
         </div>
 
         <div className="mt-4 rounded-[1.25rem] border border-[#E8EDE7]/10 bg-[#153023] p-3 text-sm leading-6 text-[#E8EDE7]/72">
-          {circle.time} · {circle.members} members
+          {circle.time} - {circle.members} members
           <br />
           Challenge: {circle.challenge}
         </div>
@@ -117,7 +117,7 @@ export default function SafetyPanel() {
         </div>
       </section>
 
-      <section className="min-w-0 overflow-hidden rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-4 shadow-sm shadow-[#0A2318]/5 sm:p-5">
+      <section className="min-w-0 max-w-full overflow-hidden rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-4 shadow-sm shadow-[#0A2318]/5 sm:p-5">
         <div className="flex items-start gap-3">
           <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#D4C1A0]/45 text-[#0A2318]">
             <Store size={20} />
@@ -126,7 +126,7 @@ export default function SafetyPanel() {
             <p className="text-xs font-bold uppercase text-[#8C6246]">Local support match</p>
             <h3 className="mt-1 font-serif text-2xl text-[#0A2318]">{provider.name}</h3>
             <p className="mt-2 text-sm leading-6 text-[#0A2318]/64">
-              {provider.type} · {provider.area} · {provider.price}
+              {provider.type} - {provider.area} - {provider.price}
             </p>
           </div>
         </div>
@@ -153,10 +153,10 @@ export default function SafetyPanel() {
         </div>
       </section>
 
-      <section className="min-w-0 overflow-hidden rounded-[2rem] border border-[#8C6246]/18 bg-[#D4C1A0]/30 p-4 shadow-sm shadow-[#0A2318]/5 sm:p-5">
+      <section className="min-w-0 max-w-full overflow-hidden rounded-[2rem] border border-[#8C6246]/18 bg-[#D4C1A0]/30 p-4 shadow-sm shadow-[#0A2318]/5 sm:p-5">
         <div className="flex items-start gap-3">
           <HeartPulse size={20} className="mt-0.5 shrink-0 text-[#8C6246]" />
-          <div>
+          <div className="min-w-0">
             <p className="text-xs font-bold uppercase text-[#8C6246]">Safety note</p>
             <p className="mt-2 text-sm leading-6 text-[#0A2318]/72">
               TenaBot is wellness coaching, not a diagnosis or emergency service. If someone may be in immediate danger, contact local emergency support or a trusted person right now.

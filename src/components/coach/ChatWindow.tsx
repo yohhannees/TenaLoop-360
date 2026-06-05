@@ -23,7 +23,7 @@ export default function ChatWindow() {
           </p>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 text-center sm:min-w-64">
+        <div className="grid w-full min-w-0 grid-cols-3 gap-2 text-center sm:w-auto sm:min-w-64">
           <SignalPill label="Score" value={`${score}`} tone={score < 55 ? "warn" : score < 70 ? "mid" : "good"} />
           <SignalPill label="Zone" value={scoreLabel} tone={score < 55 ? "warn" : "mid"} />
           <SignalPill label="Food" value={foodSignal.risk} tone={foodSignal.risk === "High" ? "warn" : foodSignal.risk === "Medium" ? "mid" : "good"} />
@@ -37,7 +37,7 @@ export default function ChatWindow() {
         <MiniSignal label="Support" value={checkIn.support} />
       </div>
 
-      <div className="mt-5 flex min-w-0 gap-2 overflow-x-auto pb-1 no-scrollbar">
+      <div className="mt-5 flex max-w-full min-w-0 gap-2 overflow-x-auto pb-1 no-scrollbar">
         {quickPrompts.map((prompt) => (
           <button
             key={prompt}
@@ -98,14 +98,14 @@ function SignalPill({
   return (
     <div
       className={cn(
-        "min-w-0 rounded-2xl px-3 py-2",
+        "min-w-0 rounded-2xl px-2 py-2 sm:px-3",
         tone === "good" && "bg-[#0A2318] text-[#E8EDE7]",
         tone === "mid" && "bg-[#D4C1A0]/45 text-[#0A2318]",
         tone === "warn" && "bg-[#8C6246] text-[#E8EDE7]",
       )}
     >
       <p className="text-[10px] font-bold uppercase opacity-70">{label}</p>
-      <p className="truncate text-sm font-semibold">{value}</p>
+      <p className="truncate text-xs font-semibold sm:text-sm">{value}</p>
     </div>
   );
 }

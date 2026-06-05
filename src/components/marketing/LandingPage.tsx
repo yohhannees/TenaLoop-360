@@ -7,6 +7,8 @@ import {
   ArrowUp,
   ArrowUpRight,
   Brain,
+  CalendarCheck,
+  Dumbbell,
   Mail,
   Send,
   Store,
@@ -120,22 +122,22 @@ const contents = [
     label: "Start here",
   },
   {
-    href: "#work",
+    href: "#chapters",
     number: "02.",
+    title: "Product chapters",
+    label: "Four layers",
+  },
+  {
+    href: "#work",
+    number: "03.",
     title: "Selected wellness loops",
     label: "Product modules",
   },
   {
     href: "#services",
-    number: "03.",
+    number: "04.",
     title: "The psychology of daily care",
     label: "Our method",
-  },
-  {
-    href: "#contact",
-    number: "04.",
-    title: "Final note and next steps",
-    label: "Start demo",
   },
 ];
 
@@ -164,6 +166,57 @@ const workCards = [
     year: "03",
     src: "/tenaloop-photo-circle-group.jpg",
     position: "50% 42%",
+  },
+];
+
+const productChapters = [
+  {
+    icon: Brain,
+    number: "01",
+    title: "TenaBot",
+    kicker: "Intelligence",
+    summary: "AI coach, stress signal, breathing reset",
+    body: "TenaBot reads the daily check-in and turns stress, sleep, food, movement, and support signals into one small action that can happen right now.",
+    src: "/tenaloop-photo-mind.jpg",
+    position: "50% 48%",
+    tone: "bg-[#E8EDE7] text-[#0A2318]",
+    accent: "text-[#8C6246]",
+  },
+  {
+    icon: Utensils,
+    number: "02",
+    title: "TenaPlate",
+    kicker: "Nourishment",
+    summary: "Local meals, fasting rhythm, BP and glucose care",
+    body: "The food layer understands familiar plates like shiro, misir, gomen, tibs, coffee, and injera, then suggests a better next choice without fighting local culture.",
+    src: "/tenaloop-photo-food-plate.jpg",
+    position: "50% 52%",
+    tone: "bg-[#D4C1A0] text-[#0A2318]",
+    accent: "text-[#0A2318]",
+  },
+  {
+    icon: Dumbbell,
+    number: "03",
+    title: "TenaMove",
+    kicker: "Momentum",
+    summary: "Guided movement, simulations, and beginner-safe routines",
+    body: "Movement turns from guilt into a doable progression: breathing, mobility, walk clubs, short workouts, and routines that match the user's energy.",
+    src: "/tenaloop-photo-move.jpg",
+    position: "50% 50%",
+    tone: "bg-[#8C6246] text-[#E8EDE7]",
+    accent: "text-[#D4C1A0]",
+  },
+  {
+    icon: CalendarCheck,
+    number: "04",
+    title: "TenaMarket",
+    kicker: "Care network",
+    summary: "Providers, bookings, bundles, and passport rewards",
+    body: "The marketplace closes the loop with local yoga, nutrition, screening, spa, counseling, walking, and recovery services matched to today's score.",
+    src: "/tenaloop-photo-market.jpg",
+    position: "50% 54%",
+    tone: "bg-[#0A2318] text-[#E8EDE7]",
+    accent: "text-[#D4C1A0]",
   },
 ];
 
@@ -220,6 +273,90 @@ function HeroTile({
         FIG.{index + 1}
       </div>
     </div>
+  );
+}
+
+function ProductChapters() {
+  return (
+    <section
+      id="chapters"
+      className="relative mb-0 rounded-[2rem] bg-[#0A2318] p-4 text-[#E8EDE7] shadow-[5px_5px_15px_rgba(0,0,0,0.45)] sm:p-8 md:p-12"
+      style={darkTexture}
+    >
+      <div className="mb-10 flex flex-col gap-4 border-b border-[#E8EDE7]/14 pb-5 md:flex-row md:items-end md:justify-between">
+        <div>
+          <p className="text-xs font-bold uppercase text-[#D4C1A0]">
+            Product chapters
+          </p>
+          <h2 className="mt-2 font-serif text-5xl leading-none md:text-7xl">
+            One loop, four layers.
+          </h2>
+        </div>
+        <p className="max-w-md text-sm leading-6 text-[#E8EDE7]/66">
+          The app moves from signal to action to support, then brings that rhythm
+          back into the next daily check-in.
+        </p>
+      </div>
+
+      <div className="relative grid gap-8 pb-4">
+        {productChapters.map((chapter, index) => {
+          const Icon = chapter.icon;
+          return (
+            <article
+              key={chapter.title}
+              className={`sticky top-4 min-h-[calc(100svh-2rem)] overflow-hidden rounded-[1.5rem] border border-[#E8EDE7]/14 shadow-[5px_5px_20px_rgba(0,0,0,0.22)] sm:top-6 sm:min-h-[calc(100svh-3rem)] lg:top-8 lg:min-h-[calc(100vh-4rem)] ${chapter.tone}`}
+              style={{ zIndex: index + 1 }}
+            >
+              <div className="grid min-h-[inherit] gap-6 p-4 sm:p-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(260px,0.75fr)] lg:p-8">
+                <div className="flex min-w-0 flex-col justify-between">
+                  <div>
+                    <div className={`mb-6 flex items-center gap-2 text-xs font-bold uppercase ${chapter.accent}`}>
+                      <Icon size={17} />
+                      {chapter.kicker}
+                    </div>
+                    <h3 className="font-serif text-5xl leading-[0.92] tracking-normal sm:text-6xl lg:text-7xl">
+                      {chapter.title}
+                    </h3>
+                  </div>
+
+                  <div className="mt-10 grid gap-5 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-start">
+                    <p className="font-serif text-5xl leading-none tracking-normal opacity-28 sm:text-6xl">
+                      {chapter.number}
+                    </p>
+                    <div className="min-w-0">
+                      <p className="font-serif text-2xl leading-tight sm:text-3xl">
+                        {chapter.summary}
+                      </p>
+                      <p className="mt-4 text-sm leading-6 opacity-72">
+                        {chapter.body}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex min-w-0 items-center">
+                  <div className="relative h-[320px] w-full overflow-hidden rounded-[1.25rem] border border-current/12 bg-[#0A2318] sm:h-[400px] lg:h-[460px]">
+                    <Image
+                      src={chapter.src}
+                      alt={`${chapter.title} product chapter`}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 340px"
+                      className="object-cover saturate-[0.92] transition duration-700 hover:scale-105"
+                      style={{ objectPosition: chapter.position }}
+                    />
+                    <div className="absolute inset-0 bg-[#0A2318]/18 mix-blend-multiply" />
+                    <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between rounded-full border border-[#E8EDE7]/16 bg-[#0A2318]/66 px-4 py-2.5 text-[10px] font-bold uppercase text-[#E8EDE7] backdrop-blur">
+                      <span>{chapter.title}</span>
+                      <ArrowRight size={15} />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
   );
 }
 
@@ -372,6 +509,10 @@ export default function LandingPage() {
             </div>
           </div>
         </section>
+
+        <SpiralDivider />
+
+        <ProductChapters />
 
         <SpiralDivider />
 

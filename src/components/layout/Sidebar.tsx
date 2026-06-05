@@ -83,19 +83,19 @@ export default function Sidebar() {
   return (
     <>
       {/* ── Mobile top bar ───────────────────────────────────────────── */}
-      <div className="fixed inset-x-0 top-0 z-30 flex h-14 items-center justify-between border-b border-[#0A2318]/10 bg-[#E5EAE3]/95 px-4 backdrop-blur-sm lg:hidden">
-        <Link href="/" className="flex items-center gap-2.5">
+      <div className="fixed inset-x-0 top-0 z-30 flex h-14 min-w-0 max-w-full items-center justify-between gap-3 overflow-hidden border-b border-[#0A2318]/10 bg-[#E5EAE3]/95 px-4 backdrop-blur-sm lg:hidden">
+        <Link href="/" className="flex min-w-0 items-center gap-2.5">
           <span className="grid h-8 w-8 place-items-center rounded-full bg-[#0A2318]">
             <Activity size={16} strokeWidth={1.5} className="text-[#D4C1A0]" />
           </span>
-          <span className="font-serif text-base font-bold text-[#0A2318]">TenaLoop</span>
+          <span className="truncate font-serif text-base font-bold text-[#0A2318]">TenaLoop</span>
         </Link>
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2">
           <span
             className="rounded-full px-2.5 py-1 text-xs font-bold"
             style={{ backgroundColor: color + "22", color }}
           >
-            {score} · {label}
+            {score} - {label}
           </span>
           <button
             onClick={() => setMobileOpen(true)}

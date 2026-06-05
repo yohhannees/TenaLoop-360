@@ -13,24 +13,32 @@ export default function BusinessMetrics() {
         title="Team wellness score"
         metric="67"
         body="Anonymous trends for stress, sleep, food, movement, and support."
+        index="01"
+        tone="forest"
       />
       <BusinessCard
         label="Provider marketplace"
         title="Bookings in demo"
         metric={`${bookedProviders.length}`}
         body="Provider listings, offers, conversion, and repeat client signals."
+        index="02"
+        tone="sand"
       />
       <BusinessCard
         label="Community health"
         title="Active circles"
         metric={`${joinedCircles.length}`}
         body="Moderated peer groups for students, workers, fasting, and BP habits."
+        index="03"
+        tone="sage"
       />
       <BusinessCard
         label="Revenue model"
         title="Monetization lanes"
         metric="4"
         body="Premium AI, marketplace commission, provider SaaS, and B2B insights."
+        index="04"
+        tone="clay"
       />
     </div>
   );
