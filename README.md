@@ -16,6 +16,21 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## OpenAI TenaBot Setup
+
+TenaBot uses a server-side API route at `/api/coach`, so the OpenAI key must stay in local environment variables and should never be exposed as a `NEXT_PUBLIC_` value.
+
+Create `.env.local` in the project root:
+
+```bash
+OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_MODEL=gpt-5.4-mini
+```
+
+`OPENAI_MODEL` is optional. If it is not set, the app uses `gpt-5.4-mini`. Restart `npm run dev` after changing `.env.local`.
+
+If `OPENAI_API_KEY` is missing or the API call fails, TenaBot falls back to the local wellness safety response so the chat still works during demos.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
