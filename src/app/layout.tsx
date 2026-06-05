@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="h-full antialiased">
-      <body className="flex min-h-full flex-col bg-[#f6f8f5] text-[#15231d]">
+      <body className="h-full bg-[#E5EAE3] text-[#0A2318]">
         <WellnessProvider>
           <AppFrame>{children}</AppFrame>
         </WellnessProvider>

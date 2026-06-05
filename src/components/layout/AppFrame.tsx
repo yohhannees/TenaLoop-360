@@ -1,24 +1,27 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import AppHeader from "@/components/layout/AppHeader";
+import Sidebar from "@/components/layout/Sidebar";
 
 const PUBLIC_ROUTES = new Set(["/", "/login", "/signup"]);
 
 export default function AppFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isPublicRoute = PUBLIC_ROUTES.has(pathname);
 
-  if (isPublicRoute) {
+  if (PUBLIC_ROUTES.has(pathname)) {
     return <>{children}</>;
   }
 
   return (
-    <>
-      <AppHeader />
-      <main className="w-full flex-1 bg-[#E5EAE3] px-4 py-6 text-[#0A2318] sm:px-6 lg:px-8">
-        <div className="mx-auto w-full max-w-7xl min-w-0">{children}</div>
+    <div className="flex h-screen overflow-hidden bg-[#E5EAE3] text-[#0A2318]">
+      <Sidebar />
+
+      {/* Main scroll area — offset top on mobile for the fixed top bar */}
+      <main className="flex flex-1 flex-col overflow-y-auto pt-14 lg:pt-0">
+        <div className="mx-auto w-full max-w-7xl min-w-0 flex-1 px-4 py-6 sm:px-6 lg:px-8">
+          {children}
+        </div>
       </main>
-    </>
+    </div>
   );
 }
