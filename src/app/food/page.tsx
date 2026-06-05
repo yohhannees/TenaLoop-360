@@ -27,34 +27,37 @@ export default function FoodPage() {
 
   function selectMeal(text: string) {
     setFoodText(text);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    // On mobile, scroll back to top so the user sees the analysis update
+    if (window.innerWidth < 768) window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   return (
-    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5 xl:grid-cols-[1fr_1fr_1fr]">
+    <div className="grid gap-5 md:grid-cols-[2fr_3fr]">
 
-      {/* ── Column 1: Logger + Fasting / Hydration ────────────── */}
-      <div className="grid min-w-0 content-start gap-5">
+      {/* ── LEFT: Input panel ─────────────────────────────────── */}
+      <div className="grid content-start gap-5">
         <FoodLogger
           foodText={foodText}
           setFoodText={setFoodText}
           mealPhoto={mealPhoto}
           onPhotoChange={handlePhotoChange}
         />
+        {/* Hydration or fasting — both useful alongside the logger */}
         {checkIn.fasting
           ? <FastingTimer onSelectMeal={selectMeal} />
           : <HydrationTracker />
         }
       </div>
 
-      {/* ── Column 2: Guidance + Nutrients ────────────────────── */}
-      <div className="grid min-w-0 content-start gap-5">
+      {/* ── RIGHT: Output + tracking ──────────────────────────── */}
+      <div className="grid content-start gap-5">
+        {/* Analysis + nutrients — primary feedback for logged meal */}
         <MealGuidance signal={signal} meal={foodText} />
-      </div>
 
-      {/* ── Column 3: Daily log + Meal plan ───────────────────── */}
-      <div className="grid min-w-0 content-start gap-5">
+        {/* Daily log — most actionable secondary feature */}
         <DailyMealLog onMealSelect={selectMeal} />
+
+        {/* Meal plan — discovery / planning */}
         <MealPlanCard onSelectMeal={selectMeal} />
       </div>
 

@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Check, ChevronRight, SkipForward, X } from "lucide-react";
 import { useWellness } from "@/context/WellnessContext";
 import { Workout, ExerciseCue } from "@/lib/exercises";
-import { cn } from "@/lib/utils";
 import ExerciseFigure from "@/components/move/ExerciseFigure";
 
 const CUE_COLOR: Record<ExerciseCue, { bg: string; ring: string; text: string }> = {
