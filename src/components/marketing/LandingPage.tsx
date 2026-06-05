@@ -159,28 +159,7 @@ const rootedSteps = [
   { step: "Refer",   icon: CalendarCheck, detail: "Yoga, spine check, women's telehealth, or mindfulness." },
 ];
 
-const panelists = [
-  {
-    name: "Deborah Lundstrom",
-    role: "Tulsi Wellness · Yoga & Ayurveda",
-    hit: "Efoy Reset, breath, gentle movement, booking wellness experiences, and a culturally rooted journey.",
-  },
-  {
-    name: "Kidist Tesfaye",
-    role: "YeneHealth · Femtech",
-    hit: "Cycle-aware stress mode, private women's wellness layer, and referral to telehealth professionals.",
-  },
-  {
-    name: "Dr. Selam Aklilu",
-    role: "First Spine Clinics · Chiropractic",
-    hit: "Body pain map, posture risk detection, spine-safe movement routines, and red-flag provider referral.",
-  },
-  {
-    name: "Dr. Kidi",
-    role: "Dr. Kidi LLC · Integrative Medicine",
-    hit: "\"What is your body telling you?\" — embodied awareness, reflective journaling, and healing alongside medicine.",
-  },
-];
+
 
 const workCards = [
   {
@@ -351,21 +330,7 @@ function RootedBodySection() {
         </div>
       </div>
 
-      {/* panelist table */}
-      <div className="mt-10 grid gap-4 sm:grid-cols-2">
-        {panelists.map((p) => (
-          <div
-            key={p.name}
-            className="rounded-[1.5rem] border border-[#0A2318]/10 bg-[#D4C1A0]/35 p-5"
-          >
-            <p className="font-mono text-[10px] font-bold uppercase tracking-widest text-[#8C6246]">
-              {p.role}
-            </p>
-            <h4 className="mt-1 font-serif text-xl text-[#0A2318]">{p.name}</h4>
-            <p className="mt-2 text-sm leading-6 text-[#0A2318]/62">{p.hit}</p>
-          </div>
-        ))}
-      </div>
+   
 
       {/* CTA */}
       <div className="mt-10">
