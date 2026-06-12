@@ -84,3 +84,47 @@ export type PlanItem = {
   detail: string;
   stamp: Stamp;
 };
+
+export type AuthUser = {
+  id: string;
+  email: string;
+  name: string | null;
+  role: string;
+  organization: string | null;
+};
+
+export type MealLogEntry = {
+  id: string;
+  slot: string | null;
+  text: string;
+  risk: string | null;
+  score: number | null;
+  photoUrl: string | null;
+  createdAt: string;
+};
+
+export type BookingEntry = {
+  id: string;
+  providerId: string;
+  providerName: string | null;
+  bookingRef: string;
+  bookingDate: string;
+  slot: string;
+  paymentMethod: string | null;
+  status: string;
+  createdAt: string;
+};
+
+export type WellnessBackendState = {
+  user: AuthUser;
+  checkIn: CheckIn;
+  stamps: Stamp[];
+  points: number;
+  savedProviderMatches: string[];
+  bookedProviders: string[];
+  joinedCircles: string[];
+  language: Language;
+  messages: ChatMessage[];
+  recentMeals: MealLogEntry[];
+  bookings: BookingEntry[];
+};

@@ -7,6 +7,17 @@ import { cn } from "@/lib/utils";
 
 type Step      = "slot" | "details" | "payment" | "confirmed";
 type PayMethod = "telebirr" | "cbe" | "venue";
+type BookingDetails = {
+  providerName: string;
+  bookingRef: string;
+  bookingDate: string;
+  slot: string;
+  customerName: string;
+  phone: string;
+  note: string;
+  paymentMethod: PayMethod;
+  price: string;
+};
 
 const STEP_LABELS: Record<Step, string> = {
   slot:      "Choose a time",
@@ -31,7 +42,11 @@ function makeBookingRef() {
   return `TL-${new Date().getFullYear()}-${String(Math.floor(1000 + Math.random() * 9000))}`;
 }
 
-type Props = { provider: ExtendedProvider; onClose: () => void; onConfirm: () => void };
+type Props = {
+  provider: ExtendedProvider;
+  onClose: () => void;
+  onConfirm: (details: BookingDetails) => void;
+};
 
 export default function BookingModal({ provider, onClose, onConfirm }: Props) {
   const [dateOptions] = useState(makeDateOptions);
@@ -65,7 +80,18 @@ export default function BookingModal({ provider, onClose, onConfirm }: Props) {
   }
 
   function confirm() {
-    onConfirm();
+    if (!method) return;
+    onConfirm({
+      providerName: provider.name,
+      bookingRef,
+      bookingDate: date,
+      slot,
+      customerName: name,
+      phone,
+      note,
+      paymentMethod: method,
+      price: provider.price,
+    });
     setStep("confirmed");
   }
 

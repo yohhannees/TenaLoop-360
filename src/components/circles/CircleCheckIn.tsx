@@ -22,7 +22,7 @@ const MOOD_ACTIVE: Record<Mood, string> = {
 type Props = { circleId: string };
 
 export default function CircleCheckIn({ circleId }: Props) {
-  const { award } = useWellness();
+  const { logCircleCheckIn } = useWellness();
   const session    = CIRCLE_SESSIONS.find((s) => s.circleId === circleId);
   const [mood, setMood]     = useState<Mood | null>(null);
   const [text, setText]     = useState("");
@@ -31,7 +31,7 @@ export default function CircleCheckIn({ circleId }: Props) {
   function submit() {
     if (!mood) return;
     setSubmitted(true);
-    award("Community", 15);
+    logCircleCheckIn(circleId, mood, text);
   }
 
   if (submitted) {

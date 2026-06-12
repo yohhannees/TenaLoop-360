@@ -1,45 +1,10 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState, ReactNode } from "react";
-import { CheckIn, ChatMessage, Language, Stamp } from "@/lib/types";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, ReactNode } from "react";
+import { AuthUser, CheckIn, ChatMessage, Language, Stamp, WellnessBackendState } from "@/lib/types";
 import { calculateScore, buildPlan, getScoreColor, getScoreLabel } from "@/lib/score";
 import { getFoodSignal } from "@/lib/foods";
-
-const DEFAULT_CHECK_IN: CheckIn = {
-  mood: "Steady",
-  stress: 7,
-  sleep: 4,
-  energy: 4,
-  movement: 10,
-  water: 4,
-  meal: "Firfir and sweet coffee",
-  support: "Low",
-  fasting: false,
-  painAreas: ["Neck", "Shoulders"],
-  painIsNew: false,
-  painTrigger: "Long sitting",
-  redFlags: false,
-  womenWellness: true,
-  cycleContext: "Period near",
-  privacyMode: true,
-  screenHours: 8,
-  coffeeCups: 2,
-  sugarServings: 2,
-  familyStress: false,
-  communitySupport: false,
-  preferredLanguage: "Mixed",
-  bpFocus: true,
-  glucoseFocus: false,
-  bp: "",
-  glucose: "",
-};
-
-const INITIAL_MESSAGES: ChatMessage[] = [
-  {
-    role: "assistant",
-    text: "Selam, I am TenaBot. Tell me what is happening today and I will turn it into one practical wellness loop.",
-  },
-];
+import { DEFAULT_CHECK_IN, DEFAULT_STAMPS, INITIAL_MESSAGES } from "@/lib/defaults";
 
 function normalizeCheckIn(checkIn: CheckIn): CheckIn {
   return {
@@ -50,9 +15,12 @@ function normalizeCheckIn(checkIn: CheckIn): CheckIn {
 }
 
 type WellnessContextValue = {
+  user: AuthUser | null;
+  isBackendReady: boolean;
   // check-in
   checkIn: CheckIn;
   updateCheckIn: <K extends keyof CheckIn>(key: K, value: CheckIn[K]) => void;
+  saveCheckIn: () => void;
   // derived score state
   score: number;
   scoreColor: string;
@@ -70,26 +38,57 @@ type WellnessContextValue = {
   savedProviderMatches: string[];
   saveProviderMatch: (id: string) => void;
   bookedProviders: string[];
-  bookProvider: (id: string) => void;
+  bookProvider: (id: string, details?: BookingDetails) => void;
   // circles
   joinedCircles: string[];
   joinCircle: (id: string) => void;
+  logCircleCheckIn: (circleId: string, mood: string, note?: string) => void;
+  logCircleChallenge: (circleId: string, challengeId: string, points: number) => void;
+  // food and movement
+  logMeal: (text: string, slot?: string, photoUrl?: string | null) => void;
+  logHydration: (cups: number, goal?: number) => void;
+  logMovement: (details: MovementDetails) => void;
   // language
   language: Language;
   setLanguage: (lang: Language) => void;
 };
 
+type BookingDetails = {
+  providerName?: string;
+  bookingRef?: string;
+  bookingDate?: string;
+  slot?: string;
+  customerName?: string;
+  phone?: string;
+  note?: string;
+  paymentMethod?: string;
+  price?: string;
+};
+
+type MovementDetails = {
+  type: string;
+  workoutId?: string;
+  title?: string;
+  durationSeconds?: number;
+  minutes?: number;
+  cycles?: number;
+  points?: number;
+};
+
 const WellnessContext = createContext<WellnessContextValue | null>(null);
 
 export function WellnessProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isBackendReady, setIsBackendReady] = useState(false);
   const [checkIn, setCheckIn] = useState<CheckIn>(DEFAULT_CHECK_IN);
-  const [stamps, setStamps] = useState<Stamp[]>(["Mind", "Food"]);
+  const [stamps, setStamps] = useState<Stamp[]>(DEFAULT_STAMPS);
   const [points, setPoints] = useState(180);
   const [messages, setMessages] = useState<ChatMessage[]>(INITIAL_MESSAGES);
   const [savedProviderMatches, setSavedProviderMatches] = useState<string[]>([]);
   const [bookedProviders, setBookedProviders] = useState<string[]>([]);
   const [joinedCircles, setJoinedCircles] = useState<string[]>([]);
   const [language, setLanguage] = useState<Language>("English");
+  const statePatchTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const normalizedCheckIn = useMemo(() => normalizeCheckIn(checkIn), [checkIn]);
   const score = useMemo(() => calculateScore(normalizedCheckIn), [normalizedCheckIn]);
@@ -98,13 +97,78 @@ export function WellnessProvider({ children }: { children: ReactNode }) {
   const plan = useMemo(() => buildPlan(normalizedCheckIn, score), [normalizedCheckIn, score]);
   const foodSignal = useMemo(() => getFoodSignal(normalizedCheckIn.meal), [normalizedCheckIn.meal]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function hydrate() {
+      try {
+        const response = await fetch("/api/me", { cache: "no-store" });
+        if (!response.ok) return;
+
+        const data = (await response.json().catch(() => null)) as {
+          state?: WellnessBackendState;
+        } | null;
+
+        if (!cancelled && data?.state) {
+          applyBackendState(data.state);
+          setIsBackendReady(true);
+        }
+      } catch {
+        // Local demo mode remains available when the backend is not configured.
+      }
+    }
+
+    void hydrate();
+
+    return () => {
+      cancelled = true;
+      if (statePatchTimer.current) clearTimeout(statePatchTimer.current);
+    };
+  }, []);
+
+  function applyBackendState(state: WellnessBackendState) {
+    setUser(state.user);
+    setCheckIn(normalizeCheckIn(state.checkIn));
+    setStamps(state.stamps);
+    setPoints(state.points);
+    setMessages(state.messages.length > 0 ? state.messages : INITIAL_MESSAGES);
+    setSavedProviderMatches(state.savedProviderMatches);
+    setBookedProviders(state.bookedProviders);
+    setJoinedCircles(state.joinedCircles);
+    setLanguage(state.language);
+  }
+
   function updateCheckIn<K extends keyof CheckIn>(key: K, value: CheckIn[K]) {
-    setCheckIn((prev) => ({ ...prev, [key]: value }));
+    setCheckIn((prev) => {
+      const next = { ...prev, [key]: value };
+      queueStatePatch({ checkIn: next });
+      return next;
+    });
+  }
+
+  function optimisticAward(stamp: Stamp, amount: number) {
+    setStamps((prev) => (prev.includes(stamp) ? prev : [...prev, stamp]));
+    setPoints((prev) => prev + amount);
   }
 
   function award(stamp: Stamp, amount: number) {
-    setStamps((prev) => (prev.includes(stamp) ? prev : [...prev, stamp]));
-    setPoints((prev) => prev + amount);
+    optimisticAward(stamp, amount);
+    void postStateful("/api/passport/award", {
+      stamp,
+      points: amount,
+      source: "client-action",
+    });
+  }
+
+  function saveCheckIn() {
+    optimisticAward("Health", 15);
+    void postStateful("/api/checkins", { checkIn }).then(() =>
+      postStateful("/api/passport/award", {
+        stamp: "Health",
+        points: 15,
+        source: "rooted-check-in",
+      }),
+    );
   }
 
   function addMessage(message: ChatMessage) {
@@ -113,23 +177,110 @@ export function WellnessProvider({ children }: { children: ReactNode }) {
 
   function saveProviderMatch(id: string) {
     setSavedProviderMatches((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    void postStateful("/api/market/provider-matches", {
+      providerId: id,
+      source: "rooted-body",
+    });
   }
 
-  function bookProvider(id: string) {
+  function bookProvider(id: string, details: BookingDetails = {}) {
+    const alreadyBooked = bookedProviders.includes(id);
     setBookedProviders((prev) => (prev.includes(id) ? prev : [...prev, id]));
-    award("Experience", 30);
+    if (!alreadyBooked) optimisticAward("Experience", 30);
+    void postStateful("/api/market/bookings", {
+      providerId: id,
+      bookingDate: details.bookingDate || new Date().toISOString(),
+      slot: details.slot || "Selected in app",
+      ...details,
+    });
   }
 
   function joinCircle(id: string) {
+    const alreadyJoined = joinedCircles.includes(id);
     setJoinedCircles((prev) => (prev.includes(id) ? prev : [...prev, id]));
-    award("Community", 20);
+    if (!alreadyJoined) optimisticAward("Community", 20);
+    void postStateful("/api/circles/memberships", { circleId: id });
+  }
+
+  function logMeal(text: string, slot?: string, photoUrl?: string | null) {
+    updateCheckIn("meal", text);
+    optimisticAward("Food", 15);
+    void postStateful("/api/food/meals", {
+      text,
+      slot,
+      photoUrl: photoUrl || undefined,
+    });
+  }
+
+  function logHydration(cups: number, goal = 8) {
+    updateCheckIn("water", cups);
+    void postStateful("/api/food/hydration", { cups, goal });
+  }
+
+  function logMovement(details: MovementDetails) {
+    if (details.points && details.points > 0) {
+      optimisticAward("Move", details.points);
+    }
+    void postStateful("/api/move/sessions", details);
+  }
+
+  function logCircleCheckIn(circleId: string, mood: string, note?: string) {
+    optimisticAward("Community", 15);
+    void postStateful("/api/circles/check-ins", { circleId, mood, note });
+  }
+
+  function logCircleChallenge(circleId: string, challengeId: string, challengePoints: number) {
+    optimisticAward("Community", challengePoints);
+    void postStateful("/api/circles/challenges", {
+      circleId,
+      challengeId,
+      points: challengePoints,
+    });
+  }
+
+  function setLanguageAndPersist(lang: Language) {
+    setLanguage(lang);
+    queueStatePatch({ language: lang });
+  }
+
+  function queueStatePatch(patch: { checkIn?: CheckIn; language?: Language }) {
+    if (statePatchTimer.current) clearTimeout(statePatchTimer.current);
+    statePatchTimer.current = setTimeout(() => {
+      void fetch("/api/me", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(patch),
+      }).catch(() => {});
+    }, 350);
+  }
+
+  async function postStateful(endpoint: string, body: Record<string, unknown>) {
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) return;
+      const data = (await response.json().catch(() => null)) as {
+        state?: WellnessBackendState;
+      } | null;
+
+      if (data?.state) applyBackendState(data.state);
+    } catch {
+      // Keep the optimistic local experience if the backend is offline.
+    }
   }
 
   return (
     <WellnessContext.Provider
       value={{
         checkIn: normalizedCheckIn,
+        user,
+        isBackendReady,
         updateCheckIn,
+        saveCheckIn,
         score,
         scoreColor,
         scoreLabel,
@@ -146,8 +297,13 @@ export function WellnessProvider({ children }: { children: ReactNode }) {
         bookProvider,
         joinedCircles,
         joinCircle,
+        logCircleCheckIn,
+        logCircleChallenge,
+        logMeal,
+        logHydration,
+        logMovement,
         language,
-        setLanguage,
+        setLanguage: setLanguageAndPersist,
       }}
     >
       {children}

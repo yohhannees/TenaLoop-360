@@ -11,7 +11,7 @@ const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
 type Props = { circleId: string };
 
 export default function ChallengeTracker({ circleId }: Props) {
-  const { award } = useWellness();
+  const { logCircleChallenge } = useWellness();
   const challenge = CIRCLE_CHALLENGES.find((c) => c.circleId === circleId);
   const [done, setDone] = useState<boolean[]>([true, true, false, false, false]);
 
@@ -19,13 +19,14 @@ export default function ChallengeTracker({ circleId }: Props) {
 
   const completedDays = done.filter(Boolean).length;
   const myPct         = Math.round((completedDays / challenge.days) * 100);
+  const challengeTitle = challenge.title;
 
   function toggleDay(i: number) {
     if (done[i]) return; // can't un-complete a day
     const next = [...done];
     next[i] = true;
     setDone(next);
-    award("Community", 8);
+    logCircleChallenge(circleId, `${circleId}:${challengeTitle}:${DAY_LABELS[i]}`, 8);
   }
 
   return (

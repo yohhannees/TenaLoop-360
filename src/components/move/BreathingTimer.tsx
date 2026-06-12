@@ -21,7 +21,7 @@ const PHASE_COLORS: Record<Phase | "idle", string> = {
 };
 
 export default function BreathingTimer() {
-  const { award } = useWellness();
+  const { award, logMovement } = useWellness();
   const [running, setRunning] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(BOX_SEQUENCE[0].duration);
@@ -62,6 +62,12 @@ export default function BreathingTimer() {
               if (newCount >= TARGET_CYCLES) {
                 setRunning(false);
                 setDone(true);
+                logMovement({
+                  type: "breathing",
+                  title: "Box breathing - 3 cycles",
+                  durationSeconds: 48,
+                  cycles: TARGET_CYCLES,
+                });
                 award("Mind", 20);
               }
               return newCount;
@@ -78,7 +84,7 @@ export default function BreathingTimer() {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
     };
-  }, [running, award]);
+  }, [running, award, logMovement]);
 
   return (
     <div className="rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-5 shadow-sm shadow-[#0A2318]/5">

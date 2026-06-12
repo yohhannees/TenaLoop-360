@@ -15,6 +15,7 @@ type Props = { onSelectMeal: (meal: string) => void };
 export default function FastingTimer({ onSelectMeal }: Props) {
   const [started, setStarted] = useState(false);
   const [startTime, setStartTime] = useState<number | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [elapsed, setElapsed] = useState(0); // seconds
 
   useEffect(() => {
@@ -30,11 +31,29 @@ export default function FastingTimer({ onSelectMeal }: Props) {
     setStartTime(now);
     setStarted(true);
     setElapsed(0);
+    void fetch("/api/food/fasting", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "start", targetHours: 16 }),
+    })
+      .then((response) => response.json())
+      .then((data: { session?: { id?: string } }) => {
+        if (data.session?.id) setSessionId(data.session.id);
+      })
+      .catch(() => {});
   }
 
   function reset() {
+    if (sessionId) {
+      void fetch("/api/food/fasting", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "end", sessionId }),
+      }).catch(() => {});
+    }
     setStarted(false);
     setStartTime(null);
+    setSessionId(null);
     setElapsed(0);
   }
 

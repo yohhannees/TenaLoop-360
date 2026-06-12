@@ -9,7 +9,7 @@ const INITIAL = [true, true, false, false, false, false, false];
 const GOAL_MIN = 15;
 
 export default function WeeklyStreak() {
-  const { award } = useWellness();
+  const { logMovement } = useWellness();
   const [done, setDone] = useState<boolean[]>(INITIAL);
   const [minutes, setMinutes] = useState<number[]>([20, 18, 0, 0, 0, 0, 0]);
 
@@ -28,7 +28,14 @@ export default function WeeklyStreak() {
       next[i] = wasOff ? GOAL_MIN : 0;
       return next;
     });
-    if (wasOff) award("Move", 8);
+    if (wasOff) {
+      logMovement({
+        type: "walking-challenge",
+        title: `${DAYS[i]} walk`,
+        minutes: GOAL_MIN,
+        points: 8,
+      });
+    }
   }
 
   return (

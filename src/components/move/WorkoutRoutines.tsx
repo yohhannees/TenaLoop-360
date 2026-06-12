@@ -69,14 +69,20 @@ const ROUTINES: Routine[] = [
 ];
 
 export default function WorkoutRoutines() {
-  const { award } = useWellness();
+  const { logMovement } = useWellness();
   const [expanded, setExpanded] = useState<string | null>("office-break");
   const [completed, setCompleted] = useState<string[]>([]);
 
   function complete(id: string) {
     if (!completed.includes(id)) {
       setCompleted((prev) => [...prev, id]);
-      award("Move", 18);
+      const routine = ROUTINES.find((item) => item.id === id);
+      logMovement({
+        type: "routine",
+        workoutId: id,
+        title: routine?.title,
+        points: 18,
+      });
     }
   }
 

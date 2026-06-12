@@ -22,7 +22,7 @@ const RISK_STYLE: Record<string, string> = {
 };
 
 export default function FoodLogger({ foodText, setFoodText, mealPhoto, onPhotoChange }: Props) {
-  const { checkIn, updateCheckIn, award } = useWellness();
+  const { checkIn, updateCheckIn, logMeal } = useWellness();
 
   return (
     <section className="w-full min-w-0 max-w-full overflow-hidden rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-4 shadow-sm shadow-[#0A2318]/5 sm:p-5">
@@ -110,7 +110,7 @@ export default function FoodLogger({ foodText, setFoodText, mealPhoto, onPhotoCh
         {/* Log CTA */}
         <button
           type="button"
-          onClick={() => { updateCheckIn("meal", foodText); award("Food", 15); }}
+          onClick={() => logMeal(foodText, undefined, mealPhoto)}
           className="h-12 w-full rounded-full bg-[#0A2318] px-4 text-sm font-semibold text-[#E8EDE7] shadow-sm transition hover:bg-[#1A3A2A] active:scale-[0.98]"
         >
           Log meal · earn 15 pts

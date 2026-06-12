@@ -30,7 +30,7 @@ type Props = {
 };
 
 export default function ExercisePlayer({ workout, onClose }: Props) {
-  const { award } = useWellness();
+  const { logMovement } = useWellness();
 
   const [stepIdx, setStepIdx] = useState(0);
   const [secondsLeft, setSecondsLeft] = useState(0);
@@ -49,11 +49,16 @@ export default function ExercisePlayer({ workout, onClose }: Props) {
     if (intervalRef.current) clearInterval(intervalRef.current);
     if (stepIdx >= workout.steps.length - 1) {
       setPhase("done");
-      award("Move", workout.points);
+      logMovement({
+        type: "workout",
+        workoutId: workout.id,
+        title: workout.title,
+        points: workout.points,
+      });
     } else {
       setStepIdx((i) => i + 1);
     }
-  }, [stepIdx, workout.steps.length, workout.points, award]);
+  }, [stepIdx, workout.id, workout.title, workout.steps.length, workout.points, logMovement]);
 
   // initialise timer for each step
   useEffect(() => {

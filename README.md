@@ -47,8 +47,46 @@ TenaLoop is wellness guidance, not a diagnosis engine. It routes red flags and s
 - **UI**: React 19, Tailwind CSS 4, lucide-react icons
 - **Language**: TypeScript
 - **AI providers**: Google Gemini API or OpenAI Responses API
-- **State**: local React context for hackathon/demo flow
+- **Database**: PostgreSQL with Prisma 7
+- **Auth**: Passwordless email codes via Nodemailer and database-backed sessions
+- **State**: React context hydrated from Next.js API routes with local demo fallback
 - **Runtime**: server-side API keys only, no `NEXT_PUBLIC_` secrets
+
+## Backend Setup
+
+Copy the environment template:
+
+```bash
+cp .env.example .env.local
+```
+
+Set a real PostgreSQL URL:
+
+```bash
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/tenaloop?schema=public"
+AUTH_SECRET="replace-with-a-long-random-secret"
+APP_URL="http://localhost:3000"
+```
+
+Generate Prisma and apply migrations:
+
+```bash
+npm run db:generate
+npm run db:migrate
+```
+
+For Nodemailer auth, set SMTP values in `.env.local`:
+
+```bash
+SMTP_HOST="smtp.example.com"
+SMTP_PORT="587"
+SMTP_SECURE="false"
+SMTP_USER="smtp-user"
+SMTP_PASS="smtp-password"
+SMTP_FROM="TenaLoop 360 <no-reply@example.com>"
+```
+
+If `SMTP_HOST` is empty, Nodemailer still runs with a local JSON transport and prints the email payload in the Next.js server console. That keeps the hackathon demo usable before SMTP is configured.
 
 ## AI Setup
 
@@ -130,7 +168,7 @@ npm run start
 ```text
 src/
   app/
-    api/coach/route.ts       Server-side AI provider route
+    api/                    Auth, wellness, market, food, move, circles, and AI routes
     loop/page.tsx            Rooted Body daily loop
     coach/page.tsx           TenaBot chat page
     food/page.tsx            TenaPlate nutrition flow
@@ -149,16 +187,29 @@ src/
     layout/                  App frame and sidebar
     ui/                      Shared UI primitives
   context/
-    WellnessContext.tsx      Demo state, scoring, stamps, chat messages
+    WellnessContext.tsx      Backend-hydrated wellness state with demo fallback
   hooks/
     useCoachChat.ts          Async chat flow into /api/coach
   lib/
+    server/                  Prisma, sessions, mail, and wellness services
     rooted-body.ts           TenaScore, pattern, path, provider matches
     tenabot.ts               AI prompt builders and response extractors
     score.ts                 Score labels and local fallback coach logic
     market-providers.ts      TenaMarket provider catalog
     circles.ts               TenaCircle data
 ```
+
+Key backend routes:
+
+| Area | Routes |
+| --- | --- |
+| Auth | `/api/auth/request-code`, `/api/auth/verify-code`, `/api/auth/me`, `/api/auth/logout` |
+| State | `/api/me`, `/api/checkins`, `/api/passport/award` |
+| Food | `/api/food/meals`, `/api/food/hydration`, `/api/food/fasting` |
+| Move | `/api/move/sessions` |
+| Circles | `/api/circles/memberships`, `/api/circles/check-ins`, `/api/circles/challenges` |
+| Market | `/api/market/provider-matches`, `/api/market/bookings` |
+| Coach | `/api/coach` |
 
 ## Demo Flow
 

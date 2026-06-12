@@ -14,19 +14,19 @@ const TIPS = [
 ];
 
 export default function HydrationTracker() {
-  const { checkIn, updateCheckIn, award } = useWellness();
+  const { checkIn, logHydration, award } = useWellness();
   const cups = checkIn.water;
 
   function add(amount: number) {
     const next = Math.min(GOAL, cups + amount);
-    updateCheckIn("water", next);
+    logHydration(next, GOAL);
     if (next >= GOAL && cups < GOAL) {
       award("Health", 12);
     }
   }
 
   function remove() {
-    updateCheckIn("water", Math.max(0, cups - 1));
+    logHydration(Math.max(0, cups - 1), GOAL);
   }
 
   const pct      = (cups / GOAL) * 100;

@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { FormEvent } from "react";
+import { useState } from "react";
 import {
   Activity,
   ArrowRight,
@@ -24,6 +25,7 @@ type Props = {
 };
 
 const roles = ["Individual", "Provider", "Employer"] as const;
+type Role = (typeof roles)[number];
 
 const proofPoints = [
   "AI wellness coach and daily TenaScore",
@@ -34,10 +36,69 @@ const proofPoints = [
 export default function AuthForm({ mode }: Props) {
   const router = useRouter();
   const isSignup = mode === "signup";
+  const [role, setRole] = useState<Role>("Individual");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [organization, setOrganization] = useState("");
+  const [code, setCode] = useState("");
+  const [step, setStep] = useState<"request" | "verify">("request");
+  const [notice, setNotice] = useState("");
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    router.push("/dashboard");
+    setError("");
+    setNotice("");
+    setIsSubmitting(true);
+
+    try {
+      const endpoint =
+        step === "request" ? "/api/auth/request-code" : "/api/auth/verify-code";
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          step === "request"
+            ? {
+                mode,
+                role,
+                name,
+                email,
+                organization,
+              }
+            : {
+                email,
+                code,
+              },
+        ),
+      });
+
+      const data = (await response.json().catch(() => null)) as {
+        error?: string;
+        delivery?: "smtp" | "console";
+      } | null;
+
+      if (!response.ok) {
+        throw new Error(data?.error || "Authentication failed.");
+      }
+
+      if (step === "request") {
+        setStep("verify");
+        setNotice(
+          data?.delivery === "console"
+            ? "Code generated. Check the Next.js server console because SMTP is not configured yet."
+            : "Code sent. Check your email to continue.",
+        );
+      } else {
+        router.push("/dashboard");
+        router.refresh();
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Authentication failed.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -123,26 +184,33 @@ export default function AuthForm({ mode }: Props) {
 
               {isSignup && (
                 <div className="mt-4 grid grid-cols-3 gap-2">
-                  {roles.map((role, index) => (
+                  {roles.map((option) => (
                     <button
-                      key={role}
+                      key={option}
                       type="button"
+                      onClick={() => setRole(option)}
                       className={cn(
                         "h-9 rounded-full border px-2 text-sm font-semibold transition",
-                        index === 0
+                        option === role
                           ? "border-[#0A2318] bg-[#0A2318] text-[#E8EDE7]"
                           : "border-[#0A2318]/12 bg-[#E5EAE3] text-[#0A2318]/72 hover:border-[#8C6246] hover:text-[#0A2318]",
                       )}
                     >
-                      {role}
+                      {option}
                     </button>
                   ))}
                 </div>
               )}
 
               <form className="mt-4 grid gap-3" onSubmit={handleSubmit}>
-                {isSignup && (
-                  <Field icon={User} label="Full name" placeholder="Dawit Alemu" />
+                {isSignup && step === "request" && (
+                  <Field
+                    icon={User}
+                    label="Full name"
+                    placeholder="Dawit Alemu"
+                    value={name}
+                    onChange={setName}
+                  />
                 )}
 
                 <Field
@@ -150,23 +218,33 @@ export default function AuthForm({ mode }: Props) {
                   label="Email"
                   placeholder="you@example.com"
                   type="email"
+                  value={email}
+                  onChange={setEmail}
+                  disabled={step === "verify"}
                 />
 
-                {isSignup && (
+                {isSignup && step === "request" && (
                   <Field
                     icon={Building2}
                     label="Organization"
                     placeholder="ALX, clinic, gym, or company"
                     required={false}
+                    value={organization}
+                    onChange={setOrganization}
                   />
                 )}
 
-                <Field
-                  icon={LockKeyhole}
-                  label="Password"
-                  placeholder="At least 8 characters"
-                  type="password"
-                />
+                {step === "verify" && (
+                  <Field
+                    icon={LockKeyhole}
+                    label="Email code"
+                    placeholder="6-digit code"
+                    value={code}
+                    onChange={(value) => setCode(value.replace(/\D/g, "").slice(0, 6))}
+                    inputMode="numeric"
+                    maxLength={6}
+                  />
+                )}
 
                 {!isSignup && (
                   <div className="flex items-center justify-between gap-3 text-sm">
@@ -183,15 +261,34 @@ export default function AuthForm({ mode }: Props) {
                 <button
                   className="mt-1 inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#0A2318] px-5 text-sm font-semibold text-[#E8EDE7] shadow-sm shadow-[#0A2318]/10 transition hover:bg-[#1A3A2A]"
                   type="submit"
+                  disabled={isSubmitting}
                 >
-                  {isSignup ? "Create account" : "Log in"}
+                  {isSubmitting
+                    ? "Please wait"
+                    : step === "request"
+                      ? isSignup
+                        ? "Email signup code"
+                        : "Email login code"
+                      : "Verify and continue"}
                   <ArrowRight size={18} />
                 </button>
               </form>
 
+              {(notice || error) && (
+                <div
+                  className={cn(
+                    "mt-4 rounded-[1.25rem] border p-3 text-sm leading-6 lg:py-2.5 lg:leading-5",
+                    error
+                      ? "border-[#C4503A]/25 bg-[#C4503A]/8 text-[#C4503A]"
+                      : "border-[#8C6246]/18 bg-[#D4C1A0]/30 text-[#0A2318]/72",
+                  )}
+                >
+                  {error || notice}
+                </div>
+              )}
+
               <div className="mt-4 rounded-[1.25rem] border border-[#8C6246]/18 bg-[#D4C1A0]/30 p-3 text-sm leading-6 text-[#0A2318]/72 lg:py-2.5 lg:leading-5">
-                Demo mode: this form opens the dashboard immediately. Real auth can
-                be connected after the prototype is approved.
+                Passwordless auth uses a one-time email code sent through Nodemailer.
               </div>
 
               <p className="mt-4 text-center text-sm text-[#0A2318]/62">
@@ -217,12 +314,22 @@ function Field({
   placeholder,
   required = true,
   type = "text",
+  value,
+  onChange,
+  disabled = false,
+  inputMode,
+  maxLength,
 }: {
   icon: typeof User;
   label: string;
   placeholder: string;
   required?: boolean;
   type?: string;
+  value: string;
+  onChange: (value: string) => void;
+  disabled?: boolean;
+  inputMode?: "numeric";
+  maxLength?: number;
 }) {
   return (
     <label className="grid gap-1.5 text-sm font-medium text-[#0A2318]/82">
@@ -234,6 +341,11 @@ function Field({
           placeholder={placeholder}
           required={required}
           type={type}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          disabled={disabled}
+          inputMode={inputMode}
+          maxLength={maxLength}
         />
       </span>
     </label>

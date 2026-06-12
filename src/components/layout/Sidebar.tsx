@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   Activity,
@@ -52,7 +52,8 @@ function sidebarLabel(score: number) {
 
 export default function Sidebar() {
   const pathname = usePathname();
-  const { score, points, stamps, language, setLanguage } = useWellness();
+  const router = useRouter();
+  const { score, points, stamps, language, setLanguage, user } = useWellness();
 
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -78,6 +79,13 @@ export default function Sidebar() {
 
   function close() {
     setMobileOpen(false);
+  }
+
+  async function signOut() {
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => {});
+    close();
+    router.push("/");
+    router.refresh();
   }
 
   return (
@@ -343,13 +351,14 @@ export default function Sidebar() {
               >
                 <Globe2 size={15} strokeWidth={1.5} />
               </button>
-              <Link
-                href="/"
+              <button
+                type="button"
                 title="Sign out"
+                onClick={signOut}
                 className="mx-auto grid h-8 w-8 place-items-center rounded-lg text-[#E8EDE7]/65 transition hover:text-[#E8EDE7]/90"
               >
                 <LogOut size={15} strokeWidth={1.5} />
-              </Link>
+              </button>
             </>
           ) : (
             <>
@@ -371,14 +380,19 @@ export default function Sidebar() {
                   <Globe2 size={12} />
                   {language}
                 </button>
-                <Link
-                  href="/"
-                  onClick={close}
+                {user?.email && (
+                  <span className="max-w-28 truncate text-[10px] text-[#E8EDE7]/50">
+                    {user.email}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={signOut}
                   className="flex items-center gap-1.5 text-[10px] text-[#E8EDE7]/65 transition hover:text-[#E8EDE7]/90"
                 >
                   <LogOut size={12} />
                   Sign out
-                </Link>
+                </button>
               </div>
             </>
           )}

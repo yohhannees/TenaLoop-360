@@ -60,8 +60,8 @@ function MarketPageContent() {
       : null;
   const activeBookingProvider = bookingProvider ?? queryBookingProvider;
 
-  function confirmBooking() {
-    if (activeBookingProvider) bookProvider(activeBookingProvider.id);
+  function confirmBooking(details: Parameters<typeof bookProvider>[1]) {
+    if (activeBookingProvider) bookProvider(activeBookingProvider.id, details);
   }
 
   function closeModal() {

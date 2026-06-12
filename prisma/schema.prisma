@@ -1,0 +1,283 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  role          String    @default("Individual")
+  organization  String?
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  state             WellnessState?
+  sessions          Session[]
+  loginCodes        EmailLoginCode[]
+  checkIns          CheckInEntry[]
+  passportEvents    PassportEvent[]
+  chatMessages      ChatMessage[]
+  providerMatches   ProviderMatch[]
+  bookings          Booking[]
+  circleMemberships CircleMembership[]
+  circleCheckIns    CircleCheckIn[]
+  circleChallenges  CircleChallengeLog[]
+  mealLogs          MealLog[]
+  hydrationLogs     HydrationLog[]
+  fastingSessions   FastingSession[]
+  movementSessions  MovementSession[]
+  appEvents         AppEvent[]
+}
+
+model WellnessState {
+  id                   String   @id @default(cuid())
+  userId               String   @unique
+  checkIn              Json
+  stamps               Json     @default("[\"Mind\",\"Food\"]")
+  points               Int      @default(180)
+  savedProviderMatches Json     @default("[]")
+  bookedProviders      Json     @default("[]")
+  joinedCircles        Json     @default("[]")
+  language             String   @default("English")
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Session {
+  id         String   @id @default(cuid())
+  userId     String
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  lastSeenAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model EmailLoginCode {
+  id         String    @id @default(cuid())
+  userId     String
+  email      String
+  codeHash   String    @unique
+  purpose    String    @default("login")
+  expiresAt  DateTime
+  consumedAt DateTime?
+  attempts   Int       @default(0)
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([expiresAt])
+}
+
+model CheckInEntry {
+  id         String   @id @default(cuid())
+  userId     String
+  score      Int
+  checkIn    Json
+  foodSignal Json?
+  plan       Json?
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model PassportEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  stamp     String
+  points    Int
+  source    String   @default("manual")
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  userId    String
+  role      String
+  text      String
+  source    String?
+  model     String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model ProviderMatch {
+  id         String   @id @default(cuid())
+  userId     String
+  providerId String
+  status     String   @default("saved")
+  source     String   @default("rooted-body")
+  metadata   Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, providerId])
+  @@index([userId, status])
+}
+
+model Booking {
+  id           String   @id @default(cuid())
+  userId       String
+  providerId   String
+  providerName String?
+  bookingRef   String   @unique
+  bookingDate  DateTime
+  slot         String
+  customerName String?
+  phone        String?
+  note         String?
+  paymentMethod String?
+  price        String?
+  status       String   @default("confirmed")
+  metadata     Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([providerId])
+}
+
+model CircleMembership {
+  id        String   @id @default(cuid())
+  userId    String
+  circleId  String
+  status    String   @default("joined")
+  joinedAt  DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, circleId])
+  @@index([userId, status])
+}
+
+model CircleCheckIn {
+  id           String   @id @default(cuid())
+  userId       String
+  circleId     String
+  mood         String?
+  stressRelief Int?
+  note         String?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, circleId, createdAt])
+}
+
+model CircleChallengeLog {
+  id          String   @id @default(cuid())
+  userId      String
+  circleId    String
+  challengeId String
+  points      Int      @default(0)
+  status      String   @default("completed")
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, circleId, createdAt])
+}
+
+model MealLog {
+  id        String   @id @default(cuid())
+  userId    String
+  slot      String?
+  text      String
+  risk      String?
+  score     Int?
+  photoUrl  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model HydrationLog {
+  id        String   @id @default(cuid())
+  userId    String
+  cups      Int
+  goal      Int      @default(8)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+model FastingSession {
+  id          String    @id @default(cuid())
+  userId      String
+  startedAt   DateTime  @default(now())
+  endedAt     DateTime?
+  targetHours Int       @default(16)
+  status      String    @default("active")
+  metadata    Json?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+}
+
+model MovementSession {
+  id              String   @id @default(cuid())
+  userId          String
+  type            String
+  workoutId       String?
+  title           String?
+  durationSeconds Int?
+  minutes         Int?
+  cycles          Int?
+  points          Int      @default(0)
+  metadata        Json?
+  createdAt       DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type, createdAt])
+}
+
+model AppEvent {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type, createdAt])
+}

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { ChevronDown, Clock, Plus, X } from "lucide-react";
 import { getFoodSignal } from "@/lib/foods";
 import { FoodSignal } from "@/lib/types";
+import { useWellness } from "@/context/WellnessContext";
 import { cn } from "@/lib/utils";
 
 type MealSlot = "Breakfast" | "Snack" | "Lunch" | "Dinner";
@@ -35,6 +36,7 @@ const SEED: MealEntry[] = [
 ];
 
 export default function DailyMealLog({ onMealSelect }: { onMealSelect: (text: string) => void }) {
+  const { logMeal } = useWellness();
   const [entries, setEntries]     = useState<MealEntry[]>(SEED);
   const [open, setOpen]           = useState<MealSlot | null>("Breakfast");
   const [adding, setAdding]       = useState<MealSlot | null>(null);
@@ -46,6 +48,7 @@ export default function DailyMealLog({ onMealSelect }: { onMealSelect: (text: st
     const time = `${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}`;
     setEntries(prev => [...prev, { id: `${Date.now()}`, slot, text: draft.trim(), signal: getFoodSignal(draft.trim()), time }]);
     onMealSelect(draft.trim());
+    logMeal(draft.trim(), slot);
     setDraft("");
     setAdding(null);
   }

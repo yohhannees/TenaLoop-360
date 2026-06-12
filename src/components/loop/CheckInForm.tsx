@@ -38,7 +38,7 @@ const CYCLE_OPTIONS: CycleContext[] = [
 const LANGUAGE_OPTIONS: PreferredLanguage[] = ["English", "Amharic-ready", "Mixed"];
 
 export default function CheckInForm() {
-  const { checkIn, updateCheckIn, score, award } = useWellness();
+  const { checkIn, updateCheckIn, score, saveCheckIn } = useWellness();
 
   function togglePainArea(area: BodyArea) {
     const next = checkIn.painAreas.includes(area)
@@ -310,7 +310,7 @@ export default function CheckInForm() {
 
         <button
           type="button"
-          onClick={() => award("Health", 15)}
+          onClick={saveCheckIn}
           className="h-11 rounded-full bg-[#0A2318] px-4 text-sm font-semibold text-[#E8EDE7] shadow-sm shadow-[#0A2318]/10 transition hover:bg-[#1A3A2A]"
         >
           Save rooted check-in
