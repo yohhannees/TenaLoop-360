@@ -1,157 +1,73 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import type { ElementType, FormEvent, ReactNode } from "react";
+import { useMemo, useState } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import {
-  User, Save, Heart, Activity,
-  CheckCircle, Sparkles, ShieldCheck, Mail,
-  Mars, Venus, AlertTriangle, Phone,
-  Plus, Briefcase, Ruler, Weight, Droplet,
-  Languages, Pill, X,
+  Activity,
+  BadgeCheck,
+  Briefcase,
+  Check,
+  CheckCircle,
+  Droplet,
+  Heart,
+  Mail,
+  Mars,
+  Phone,
+  Pill,
+  Plus,
+  Ruler,
+  Save,
+  ShieldCheck,
+  Sparkles,
+  User,
+  Venus,
+  Weight,
+  X,
 } from "lucide-react";
 import { useWellness } from "@/context/WellnessContext";
+import { Stamp } from "@/lib/types";
 import { cn } from "@/lib/utils";
-
-// ─── Constants ───────────────────────────────────────────────────────────────
 
 const ROLES = ["Individual", "Provider", "Employer", "Admin"] as const;
 const LANGUAGES = ["English", "Amharic-ready"] as const;
 const DIABETES_TYPES = ["None", "Type 1", "Type 2", "Pre-diabetic"] as const;
-const BLOOD_TYPES = ["A+", "A−", "B+", "B−", "AB+", "AB−", "O+", "O−", "Unknown"] as const;
+const BLOOD_TYPES = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-", "Unknown"] as const;
 const COMMON_ALLERGIES = ["Gluten", "Dairy", "Nuts", "Peanuts", "Shellfish", "Soy"];
 const COMMON_CONDITIONS = ["Hypertension", "Asthma", "PCOS", "Anemia", "Anxiety"];
-
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+const ALL_STAMPS: Stamp[] = ["Mind", "Food", "Move", "Community", "Experience", "Health"];
 
 function bmiCategory(bmi: number) {
-  if (bmi < 18.5) return { label: "Underweight", color: "#5B8DEF", pos: bmi / 40 };
-  if (bmi < 25) return { label: "Healthy", color: "#3FAE6F", pos: bmi / 40 };
-  if (bmi < 30) return { label: "Overweight", color: "#D9A441", pos: bmi / 40 };
+  if (bmi < 18.5) return { label: "Underweight", color: "#4F7DD4", pos: bmi / 40 };
+  if (bmi < 25) return { label: "Balanced", color: "#4E9A62", pos: bmi / 40 };
+  if (bmi < 30) return { label: "Watch", color: "#D6A64B", pos: bmi / 40 };
   return { label: "High", color: "#C4503A", pos: Math.min(bmi, 40) / 40 };
 }
 
-// ─── Reusable UI ─────────────────────────────────────────────────────────────
-
-function BentoCard({ title, icon: Icon, children, span = "col-span-1", accent = "#0A2318", delay = 0 }: {
-  title: string; icon: React.ElementType; children: React.ReactNode;
-  span?: string; accent?: string; delay?: number;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
-      className={cn(
-        "group relative rounded-[2.25rem] bg-white/80 backdrop-blur-xl border border-white/60 p-7 flex flex-col overflow-hidden",
-        "shadow-[0_10px_40px_-12px_rgba(10,35,24,0.12)] transition-all duration-500",
-        "hover:-translate-y-1 hover:shadow-[0_24px_60px_-18px_rgba(10,35,24,0.22)]",
-        span,
-      )}
-    >
-      {/* top accent glow */}
-      <div
-        className="pointer-events-none absolute -top-24 -right-16 w-56 h-56 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-700"
-        style={{ background: `radial-gradient(circle, ${accent}22, transparent 70%)` }}
-      />
-      <div className="relative flex items-center gap-3 mb-6">
-        <div
-          className="p-2.5 rounded-2xl text-white shadow-lg shadow-black/5"
-          style={{ background: `linear-gradient(135deg, ${accent}, ${accent}cc)` }}
-        >
-          <Icon size={18} />
-        </div>
-        <h2 className="text-[10px] font-black uppercase tracking-[0.22em] text-[#0A2318]/45">{title}</h2>
-        <div className="ml-auto h-px flex-1 bg-gradient-to-r from-[#0A2318]/10 to-transparent" />
-      </div>
-      <div className="relative flex-1">{children}</div>
-    </motion.div>
-  );
+function initials(name: string, email?: string | null) {
+  const source = name.trim() || email || "TenaLoop";
+  return source
+    .split(/[ @._-]/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
 }
-
-function CustomInput({ label, value, onChange, placeholder, type = "text", icon: Icon, unit }: {
-  label: string; value: string; onChange: (v: string) => void;
-  placeholder?: string; type?: string; icon?: React.ElementType; unit?: string;
-}) {
-  return (
-    <div className="space-y-2 w-full">
-      <label className="block text-[10px] font-bold uppercase tracking-[0.12em] text-[#8C6246] ml-1">
-        {label}
-      </label>
-      <div className="relative group/input">
-        {Icon && <Icon size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#0A2318]/30 group-focus-within/input:text-[#8C6246] transition-colors" />}
-        <input
-          type={type}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className={cn(
-            "w-full h-12 rounded-2xl bg-[#F6F8F3] border border-transparent text-sm text-[#0A2318] placeholder:text-[#0A2318]/20 transition-all outline-none",
-            "focus:border-[#8C6246]/30 focus:bg-white focus:shadow-[0_4px_20px_-6px_rgba(140,98,70,0.3)]",
-            Icon ? "pl-11" : "px-5",
-            unit ? "pr-14" : "",
-          )}
-        />
-        {unit && <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-[#0A2318]/30 uppercase tracking-wide">{unit}</span>}
-      </div>
-    </div>
-  );
-}
-
-function MultiSelectPills({ options, selected, onToggle, removable, onRemove }: {
-  options: readonly string[]; selected: string[]; onToggle: (v: string) => void;
-  removable?: boolean; onRemove?: (v: string) => void;
-}) {
-  return (
-    <div className="flex flex-wrap gap-2">
-      {options.map((opt) => {
-        const isActive = selected.includes(opt);
-        const isCustom = removable && !COMMON_CONDITIONS.includes(opt) && !COMMON_ALLERGIES.includes(opt);
-        return (
-          <button
-            key={opt}
-            type="button"
-            onClick={() => (isCustom && onRemove ? onRemove(opt) : onToggle(opt))}
-            className={cn(
-              "group/pill px-3.5 py-2 rounded-xl text-[11px] font-bold transition-all border flex items-center gap-1.5 active:scale-95",
-              isActive
-                ? "bg-[#0A2318] border-[#0A2318] text-white shadow-md shadow-[#0A2318]/20"
-                : "bg-white/70 border-[#0A2318]/10 text-[#0A2318]/50 hover:border-[#8C6246]/40 hover:text-[#0A2318]",
-            )}
-          >
-            {opt}
-            {isCustom && isActive && <X size={11} className="opacity-60 group-hover/pill:opacity-100" />}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function VitalChip({ icon: Icon, value, unit, label }: {
-  icon: React.ElementType; value: string; unit?: string; label: string;
-}) {
-  return (
-    <div className="flex items-center gap-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 px-4 py-3">
-      <div className="p-2 rounded-xl bg-[#D4C1A0]/20 text-[#D4C1A0]">
-        <Icon size={15} />
-      </div>
-      <div className="leading-tight">
-        <p className="text-lg font-serif text-white">
-          {value}{unit && <span className="text-[11px] opacity-50 ml-1">{unit}</span>}
-        </p>
-        <p className="text-[9px] font-bold text-[#D4C1A0]/80 uppercase tracking-[0.15em]">{label}</p>
-      </div>
-    </div>
-  );
-}
-
-// ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function ProfilePage() {
-  const { user, healthProfile, language, setLanguage, refreshProfile } = useWellness();
+  const {
+    user,
+    healthProfile,
+    language,
+    setLanguage,
+    refreshProfile,
+    score,
+    scoreLabel,
+    scoreColor,
+    points,
+    stamps,
+  } = useWellness();
 
-  // Personal
   const [name, setName] = useState(user?.name ?? "");
   const [role, setRole] = useState<string>(user?.role ?? "Individual");
   const [org, setOrg] = useState(user?.organization ?? "");
@@ -160,7 +76,6 @@ export default function ProfilePage() {
     user?.dateOfBirth ? new Date(user.dateOfBirth).toISOString().slice(0, 10) : "",
   );
 
-  // Health
   const [weight, setWeight] = useState(healthProfile?.weightKg?.toString() ?? "");
   const [height, setHeight] = useState(healthProfile?.heightCm?.toString() ?? "");
   const [bloodType, setBloodType] = useState(healthProfile?.bloodType ?? "Unknown");
@@ -180,34 +95,52 @@ export default function ProfilePage() {
 
   const bmi = useMemo(() => {
     if (!weight || !height) return null;
-    return (parseFloat(weight) / (parseFloat(height) / 100) ** 2).toFixed(1);
+    const parsedWeight = parseFloat(weight);
+    const parsedHeight = parseFloat(height);
+    if (!parsedWeight || !parsedHeight) return null;
+    return (parsedWeight / (parsedHeight / 100) ** 2).toFixed(1);
   }, [weight, height]);
 
-  // Profile completeness across the fields that matter most
-  const completeness = useMemo(() => {
-    const checks = [
-      !!name.trim(), !!dob, !!weight, !!height,
-      bloodType !== "Unknown", !!emergency.trim(),
-      allergies.length > 0 || conditions.length > 0,
-      diabetes !== "None" || conditions.length > 0,
-    ];
-    return Math.round((checks.filter(Boolean).length / checks.length) * 100);
-  }, [name, dob, weight, height, bloodType, emergency, allergies, conditions, diabetes]);
+  const completenessItems = useMemo(
+    () => [
+      { label: "Identity", done: Boolean(name.trim() && dob) },
+      { label: "Vitals", done: Boolean(weight && height && bloodType !== "Unknown") },
+      { label: "Care notes", done: Boolean(allergies.length || conditions.length || meds.trim()) },
+      { label: "Emergency", done: Boolean(emergency.trim()) },
+      { label: "Metabolic", done: Boolean(diabetes !== "None" || sugar || pressure.trim()) },
+    ],
+    [allergies.length, bloodType, conditions.length, diabetes, dob, emergency, height, meds, name, pressure, sugar, weight],
+  );
 
-  const handleToggle = (list: string[], setList: (v: string[]) => void, val: string) => {
-    setList(list.includes(val) ? list.filter((i) => i !== val) : [...list, val]);
-  };
+  const completeness = Math.round(
+    (completenessItems.filter((item) => item.done).length / completenessItems.length) * 100,
+  );
 
-  const addCustom = (type: "allergy" | "condition") => {
-    const val = customInput[type].trim();
-    if (!val) return;
-    if (type === "allergy") { if (!allergies.includes(val)) setAllergies([...allergies, val]); }
-    else { if (!conditions.includes(val)) setConditions([...conditions, val]); }
-    setCustomInput({ ...customInput, [type]: "" });
-  };
+  const bmiVal = bmi ? parseFloat(bmi) : null;
+  const bmiInfo = bmiVal ? bmiCategory(bmiVal) : null;
+  const profileInitials = initials(name, user?.email);
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  function toggleValue(list: string[], setList: (value: string[]) => void, value: string) {
+    setList(list.includes(value) ? list.filter((item) => item !== value) : [...list, value]);
+  }
+
+  function addCustom(type: "allergy" | "condition") {
+    const value = customInput[type].trim();
+    if (!value) return;
+
+    if (type === "allergy") {
+      if (!allergies.some((item) => item.toLowerCase() === value.toLowerCase())) {
+        setAllergies([...allergies, value]);
+      }
+    } else if (!conditions.some((item) => item.toLowerCase() === value.toLowerCase())) {
+      setConditions([...conditions, value]);
+    }
+
+    setCustomInput((prev) => ({ ...prev, [type]: "" }));
+  }
+
+  async function handleSave(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
     setSaving(true);
     setError("");
 
@@ -249,325 +182,662 @@ export default function ProfilePage() {
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
     } catch {
-      setError("Could not save. Please try again.");
+      setError("Could not save. Please sign in and try again.");
     } finally {
       setSaving(false);
     }
-  };
-
-  const bmiVal = bmi ? parseFloat(bmi) : null;
-  const bmiInfo = bmiVal ? bmiCategory(bmiVal) : null;
-  const ringCircumference = 2 * Math.PI * 46;
+  }
 
   return (
-    <div className="relative min-h-screen bg-[#EDF0EA] p-4 md:p-8 lg:p-12 overflow-hidden">
-      {/* ── Ambient background ── */}
-      <div className="pointer-events-none fixed inset-0 -z-0">
-        <div className="absolute top-[-10%] left-[-5%] w-[40rem] h-[40rem] rounded-full bg-[#D4C1A0]/25 blur-[120px]" />
-        <div className="absolute bottom-[-15%] right-[-10%] w-[45rem] h-[45rem] rounded-full bg-[#0A2318]/10 blur-[140px]" />
-        <div className="absolute top-[30%] right-[20%] w-[28rem] h-[28rem] rounded-full bg-[#8C6246]/10 blur-[120px]" />
-      </div>
+    <div
+      className="-mx-4 -my-6 min-h-screen overflow-hidden px-4 py-6 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8"
+      style={{
+        backgroundColor: "#EEF2EA",
+        backgroundImage:
+          "linear-gradient(90deg, rgba(10,35,24,0.035) 1px, transparent 1px), linear-gradient(0deg, rgba(10,35,24,0.03) 1px, transparent 1px)",
+        backgroundSize: "32px 32px",
+      }}
+    >
+      <form onSubmit={handleSave} className="mx-auto grid max-w-7xl min-w-0 gap-6">
+        <section className="relative min-w-0 overflow-hidden rounded-lg border border-[#0A2318]/10 bg-[#071C13] text-[#E8EDE7] shadow-sm shadow-[#0A2318]/10">
+          <div
+            aria-hidden
+            className="absolute inset-0 opacity-35"
+            style={{
+              backgroundImage:
+                "linear-gradient(135deg, rgba(214,166,75,0.26), transparent 36%), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(0deg, rgba(255,255,255,0.06) 1px, transparent 1px)",
+              backgroundSize: "100% 100%, 44px 44px, 44px 44px",
+            }}
+          />
 
-      <form onSubmit={handleSave} className="relative z-10 mx-auto max-w-7xl">
-
-        {/* ── HERO HEADER ── */}
-        <motion.header
-          initial={{ opacity: 0, y: -16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-8"
-        >
-          <div className="relative rounded-[3rem] md:rounded-[3.5rem] bg-gradient-to-br from-[#0A2318] via-[#0D2A1C] to-[#08291A] p-8 md:p-12 text-white shadow-[0_30px_80px_-30px_rgba(10,35,24,0.7)] overflow-hidden">
-            {/* decorative layers */}
-            <div className="absolute top-0 right-0 w-80 h-80 bg-[#D4C1A0]/15 rounded-full blur-3xl -mr-32 -mt-32" />
-            <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-[#8C6246]/15 rounded-full blur-3xl -mb-40" />
-            <div
-              className="absolute inset-0 opacity-[0.04]"
-              style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "24px 24px" }}
-            />
-
-            <div className="relative z-10 flex flex-col lg:flex-row items-center gap-8 lg:gap-12">
-              {/* Avatar + completeness ring */}
-              <div className="relative flex-shrink-0">
-                <svg className="w-32 h-32 -rotate-90" viewBox="0 0 100 100">
-                  <circle cx="50" cy="50" r="46" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="4" />
-                  <motion.circle
-                    cx="50" cy="50" r="46" fill="none" stroke="#D4C1A0" strokeWidth="4" strokeLinecap="round"
-                    strokeDasharray={ringCircumference}
-                    initial={{ strokeDashoffset: ringCircumference }}
-                    animate={{ strokeDashoffset: ringCircumference * (1 - completeness / 100) }}
-                    transition={{ duration: 1.2, ease: "easeOut", delay: 0.3 }}
+          <div className="relative grid min-w-0 gap-6 p-5 sm:p-7 lg:grid-cols-12 lg:p-8">
+            <div className="flex min-w-0 flex-col justify-between gap-6 lg:col-span-8">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+                <div className="relative grid h-24 w-24 shrink-0 place-items-center rounded-lg border border-white/12 bg-white/8">
+                  <div
+                    className="absolute inset-2 rounded-lg"
+                    style={{
+                      background: `conic-gradient(#D6A64B ${completeness * 3.6}deg, rgba(255,255,255,0.12) 0deg)`,
+                    }}
                   />
-                </svg>
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-24 h-24 rounded-[1.75rem] bg-gradient-to-br from-[#D4C1A0] to-[#8C6246] flex items-center justify-center shadow-2xl border-4 border-white/10">
-                    <span className="text-4xl font-serif font-bold text-white/95">
-                      {name?.trim()[0]?.toUpperCase() || <User size={34} />}
+                  <span className="relative grid h-16 w-16 place-items-center rounded-lg bg-[#F7F4EC] font-serif text-2xl font-bold text-[#0A2318]">
+                    {profileInitials || <User size={26} />}
+                  </span>
+                </div>
+
+                <div className="min-w-0">
+                  <div className="inline-flex items-center gap-2 rounded-md border border-white/12 bg-white/8 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.18em] text-[#D6A64B]">
+                    <User size={13} />
+                    Profile studio
+                  </div>
+                  <h1 className="mt-4 max-w-3xl font-serif text-4xl leading-[1.02] text-white sm:text-5xl">
+                    {name.trim() || "Build your wellness profile"}
+                  </h1>
+                  <div className="mt-4 flex flex-wrap gap-2 text-sm text-[#E8EDE7]/68">
+                    <span className="inline-flex max-w-full items-center gap-2 truncate rounded-md border border-white/10 bg-white/6 px-3 py-2">
+                      <Mail size={14} className="shrink-0 text-[#D6A64B]" />
+                      <span className="truncate">{user?.email ?? "Not signed in"}</span>
+                    </span>
+                    <span className="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/6 px-3 py-2">
+                      <Briefcase size={14} className="text-[#D6A64B]" />
+                      {role}
+                    </span>
+                    <span className="inline-flex items-center gap-2 rounded-md border border-white/10 bg-white/6 px-3 py-2">
+                      <ShieldCheck size={14} className="text-[#D6A64B]" />
+                      {completeness}% complete
                     </span>
                   </div>
                 </div>
-                <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 bg-[#D4C1A0] rounded-full px-3 py-1 text-[#0A2318] shadow-lg flex items-center gap-1">
-                  <ShieldCheck size={12} />
-                  <span className="text-[10px] font-black">{completeness}%</span>
-                </div>
               </div>
 
-              {/* Identity */}
-              <div className="text-center lg:text-left flex-1">
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/10 mb-4">
-                  <Sparkles size={12} className="text-[#D4C1A0]" />
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D4C1A0]">
-                    {role} · Wellness Profile
-                  </span>
+              <div className="grid gap-2 sm:grid-cols-3">
+                <HeroMetric icon={Activity} label="TenaScore" value={score.toString()} sub={scoreLabel} color={scoreColor} />
+                <HeroMetric icon={Sparkles} label="Passport" value={`${stamps.length}/6`} sub={`${points} points`} color="#D6A64B" />
+                <HeroMetric icon={Heart} label="BMI" value={bmi ?? "--"} sub={bmiInfo?.label ?? "Add vitals"} color={bmiInfo?.color ?? "#7CA6B8"} />
+              </div>
+            </div>
+
+            <div className="grid content-start gap-3 rounded-lg border border-white/12 bg-[#F7F4EC] p-4 text-[#0A2318] shadow-2xl shadow-black/16 lg:col-span-4">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#8C6246]">
+                    Readiness file
+                  </p>
+                  <p className="mt-1 font-serif text-3xl leading-none">{completeness}%</p>
                 </div>
-                <h1 className="font-serif text-4xl md:text-6xl mb-3 tracking-tight leading-none">{name || "Your Name"}</h1>
-                <div className="flex flex-wrap justify-center lg:justify-start gap-x-5 gap-y-2 text-white/55 text-sm">
-                  <span className="flex items-center gap-2"><Mail size={14} className="text-[#D4C1A0]" /> {user?.email}</span>
-                  {bmi && (
-                    <span className="flex items-center gap-2">
-                      <Activity size={14} className="text-[#D4C1A0]" /> BMI {bmi}
-                      {bmiInfo && <span className="text-[#D4C1A0]">· {bmiInfo.label}</span>}
+                <span className="grid h-14 w-14 place-items-center rounded-full bg-[#0A2318] text-[#D6A64B]">
+                  <BadgeCheck size={24} />
+                </span>
+              </div>
+
+              <div className="grid gap-2">
+                {completenessItems.map((item) => (
+                  <div key={item.label} className="flex items-center justify-between gap-3 rounded-lg border border-[#0A2318]/8 bg-white px-3 py-2.5">
+                    <span className="text-sm font-semibold text-[#0A2318]/76">{item.label}</span>
+                    <span
+                      className={cn(
+                        "grid h-6 w-6 place-items-center rounded-md border",
+                        item.done
+                          ? "border-[#5E7A5C]/30 bg-[#5E7A5C]/12 text-[#3F6544]"
+                          : "border-[#0A2318]/10 bg-[#F7F9F5] text-[#0A2318]/30",
+                      )}
+                    >
+                      {item.done ? <Check size={13} strokeWidth={3} /> : <span className="h-1.5 w-1.5 rounded-full bg-current opacity-60" />}
                     </span>
-                  )}
-                </div>
-              </div>
-
-              {/* Quick vitals as glass chips */}
-              <div className="grid grid-cols-2 gap-3 w-full sm:w-auto shrink-0">
-                <VitalChip icon={Weight} value={weight || "—"} unit="kg" label="Weight" />
-                <VitalChip icon={Ruler} value={height || "—"} unit="cm" label="Height" />
-                <VitalChip icon={Droplet} value={sugar || "—"} unit="mg/dL" label="Sugar" />
-                <VitalChip icon={Heart} value={bloodType === "Unknown" ? "—" : bloodType} label="Blood" />
+                  </div>
+                ))}
               </div>
             </div>
           </div>
-        </motion.header>
+        </section>
 
-        {/* ── BENTO GRID ── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-5 md:gap-6">
+        <div className="grid min-w-0 gap-6 xl:grid-cols-[304px_minmax(0,1fr)]">
+          <aside className="grid content-start gap-4 xl:sticky xl:top-6">
+            <ProfileSummary
+              completeness={completeness}
+              score={score}
+              scoreLabel={scoreLabel}
+              scoreColor={scoreColor}
+              points={points}
+              stamps={stamps}
+              bmi={bmi}
+              bmiInfo={bmiInfo}
+            />
+            <SavePanel saving={saving} saved={saved} error={error} />
+          </aside>
 
-          {/* 1. Identity */}
-          <BentoCard title="Core Identity" icon={User} span="lg:col-span-7" accent="#0A2318" delay={0.05}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <CustomInput label="Full Name" value={name} onChange={setName} placeholder="Hana Tesfaye" />
-              <CustomInput label="Date of Birth" type="date" value={dob} onChange={setDob} />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-3">
-                <label className="block text-[10px] font-bold uppercase tracking-[0.12em] text-[#8C6246] ml-1">Gender</label>
-                <div className="flex gap-3">
-                  <button type="button" onClick={() => setGender("Male")}
-                    className={cn("flex-1 h-12 rounded-2xl border-2 flex items-center justify-center gap-2 transition-all active:scale-95", gender === "Male" ? "bg-[#0A2318] border-[#0A2318] text-white shadow-lg shadow-[#0A2318]/20" : "bg-[#F6F8F3] border-transparent text-[#0A2318]/40 hover:border-[#8C6246]/30")}>
-                    <Mars size={16} /> <span className="text-xs font-bold">Male</span>
-                  </button>
-                  <button type="button" onClick={() => setGender("Female")}
-                    className={cn("flex-1 h-12 rounded-2xl border-2 flex items-center justify-center gap-2 transition-all active:scale-95", gender === "Female" ? "bg-[#0A2318] border-[#0A2318] text-white shadow-lg shadow-[#0A2318]/20" : "bg-[#F6F8F3] border-transparent text-[#0A2318]/40 hover:border-[#8C6246]/30")}>
-                    <Venus size={16} /> <span className="text-xs font-bold">Female</span>
-                  </button>
+          <main className="grid min-w-0 gap-5">
+            <Panel title="Identity" icon={User} accent="#D6A64B">
+              <div className="grid gap-4 md:grid-cols-2">
+                <TextField label="Full name" value={name} onChange={setName} placeholder="Hana Tesfaye" icon={User} />
+                <TextField label="Date of birth" type="date" value={dob} onChange={setDob} />
+                <TextField label="Organization" value={org} onChange={setOrg} placeholder="Clinic or company" icon={Briefcase} />
+                <SegmentedControl
+                  label="Gender"
+                  options={[
+                    { label: "Male", value: "Male", Icon: Mars },
+                    { label: "Female", value: "Female", Icon: Venus },
+                  ]}
+                  value={gender}
+                  onChange={(value) => setGender(value as "Male" | "Female")}
+                />
+              </div>
+
+              <div className="mt-5 grid gap-4 md:grid-cols-2">
+                <ChoiceGroup label="Community role" options={ROLES} value={role} onChange={setRole} />
+                <ChoiceGroup label="App language" options={LANGUAGES} value={language} onChange={setLanguage} />
+              </div>
+            </Panel>
+
+            <div className="grid min-w-0 gap-5 lg:grid-cols-2">
+              <Panel title="Body Vitals" icon={Activity} accent="#4E9A62">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <TextField label="Weight" value={weight} onChange={setWeight} icon={Weight} unit="kg" inputMode="decimal" />
+                  <TextField label="Height" value={height} onChange={setHeight} icon={Ruler} unit="cm" inputMode="decimal" />
+                  <TextField label="Fasting sugar" value={sugar} onChange={setSugar} icon={Droplet} unit="mg/dL" inputMode="decimal" />
+                  <TextField label="Blood pressure" value={pressure} onChange={setPressure} icon={Heart} placeholder="120/80" />
                 </div>
-              </div>
-              <div className="space-y-3">
-                <label className="block text-[10px] font-bold uppercase tracking-[0.12em] text-[#8C6246] ml-1">Community Role</label>
-                <div className="flex flex-wrap gap-2">
-                  {ROLES.map((r) => (
-                    <button key={r} type="button" onClick={() => setRole(r)}
-                      className={cn("px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-wide transition-all active:scale-95", role === r ? "bg-[#D4C1A0] text-[#0A2318] shadow-md shadow-[#D4C1A0]/40" : "bg-[#F6F8F3] text-[#0A2318]/40 hover:text-[#0A2318]/70")}>
-                      {r}
-                    </button>
-                  ))}
+
+                <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                  <SelectField label="Blood type" value={bloodType} onChange={setBloodType} options={BLOOD_TYPES} />
+                  <ChoiceGroup label="Diabetes status" options={DIABETES_TYPES} value={diabetes} onChange={setDiabetes} compact />
                 </div>
-              </div>
-            </div>
-          </BentoCard>
 
-          {/* 2. Preferences */}
-          <BentoCard title="Preferences" icon={Languages} span="lg:col-span-5" accent="#8C6246" delay={0.1}>
-            <div className="space-y-6">
-              <CustomInput label="Organization" value={org} onChange={setOrg} placeholder="Clinic or Company name" icon={Briefcase} />
-              <div className="space-y-3">
-                <label className="block text-[10px] font-bold uppercase tracking-[0.12em] text-[#8C6246] ml-1">App Language</label>
-                <div className="flex gap-2">
-                  {LANGUAGES.map((l) => (
-                    <button key={l} type="button" onClick={() => setLanguage(l)}
-                      className={cn("flex-1 h-11 rounded-xl text-xs font-bold transition-all border active:scale-95", language === l ? "bg-[#0A2318] text-white border-[#0A2318] shadow-md" : "bg-[#F6F8F3] text-[#0A2318]/40 border-transparent hover:text-[#0A2318]/70")}>
-                      {l}
-                    </button>
-                  ))}
+                <AnimatePresence>
+                  {bmiInfo && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 6 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -6 }}
+                      className="mt-5 rounded-lg border border-[#0A2318]/8 bg-[#F7F9F5] p-4"
+                    >
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8C6246]">BMI range</p>
+                          <p className="mt-1 text-sm font-semibold text-[#0A2318]/70">{bmi} - {bmiInfo.label}</p>
+                        </div>
+                        <Activity size={18} style={{ color: bmiInfo.color }} />
+                      </div>
+                      <div className="relative mt-3 h-2 rounded-full bg-[linear-gradient(90deg,#4F7DD4,#4E9A62_46%,#D6A64B_70%,#C4503A)]">
+                        <motion.span
+                          className="absolute top-1/2 h-4 w-4 -translate-y-1/2 rounded-full border-2 bg-white shadow-sm"
+                          style={{ borderColor: bmiInfo.color }}
+                          initial={{ left: "0%" }}
+                          animate={{ left: `${Math.min(Math.max(bmiInfo.pos * 100, 2), 96)}%` }}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </Panel>
+
+              <Panel title="Emergency" icon={Phone} accent="#4F7DD4">
+                <div className="grid gap-4">
+                  <TextField label="Emergency contact" value={emergency} onChange={setEmergency} placeholder="Name and phone" icon={Phone} />
+                  <TextAreaField label="Additional notes" value={notes} onChange={setNotes} placeholder="Anything your care team should know..." rows={7} />
                 </div>
-              </div>
+              </Panel>
             </div>
-          </BentoCard>
 
-          {/* 3. Body Vitals */}
-          <BentoCard title="Body Vitals" icon={Activity} span="lg:col-span-4" accent="#3FAE6F" delay={0.15}>
-            <div className="space-y-5">
-              <CustomInput label="Weight" value={weight} onChange={setWeight} unit="kg" icon={Weight} />
-              <CustomInput label="Height" value={height} onChange={setHeight} unit="cm" icon={Ruler} />
-              <div className="space-y-2">
-                <label className="block text-[10px] font-bold uppercase tracking-[0.12em] text-[#8C6246] ml-1">Blood Type</label>
-                <select value={bloodType} onChange={(e) => setBloodType(e.target.value)}
-                  className="w-full h-12 rounded-2xl bg-[#F6F8F3] border border-transparent text-sm px-4 outline-none focus:border-[#8C6246]/30 focus:bg-white transition-all">
-                  {BLOOD_TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
-                </select>
+            <Panel title="Care Details" icon={Pill} accent="#C4503A">
+              <div className="grid gap-6 lg:grid-cols-2">
+                <TagEditor
+                  label="Allergies and intolerances"
+                  options={COMMON_ALLERGIES}
+                  selected={allergies}
+                  onToggle={(value) => toggleValue(allergies, setAllergies, value)}
+                  customValue={customInput.allergy}
+                  onCustomChange={(value) => setCustomInput((prev) => ({ ...prev, allergy: value }))}
+                  onAdd={() => addCustom("allergy")}
+                  onRemove={(value) => setAllergies(allergies.filter((item) => item !== value))}
+                  accent="#D6A64B"
+                />
+                <TagEditor
+                  label="Conditions"
+                  options={COMMON_CONDITIONS}
+                  selected={conditions}
+                  onToggle={(value) => toggleValue(conditions, setConditions, value)}
+                  customValue={customInput.condition}
+                  onCustomChange={(value) => setCustomInput((prev) => ({ ...prev, condition: value }))}
+                  onAdd={() => addCustom("condition")}
+                  onRemove={(value) => setConditions(conditions.filter((item) => item !== value))}
+                  accent="#C4503A"
+                />
               </div>
 
-              {/* BMI gauge */}
-              <AnimatePresence>
-                {bmiInfo && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="rounded-2xl bg-[#F6F8F3] p-4"
-                  >
-                    <div className="flex items-baseline justify-between mb-2">
-                      <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#8C6246]">BMI</span>
-                      <span className="text-sm font-serif text-[#0A2318]">
-                        {bmi} <span className="text-[10px] font-bold" style={{ color: bmiInfo.color }}>· {bmiInfo.label}</span>
-                      </span>
-                    </div>
-                    <div className="relative h-2 rounded-full bg-gradient-to-r from-[#5B8DEF] via-[#3FAE6F] via-[60%] to-[#C4503A]">
-                      <motion.div
-                        className="absolute top-1/2 -translate-y-1/2 w-3.5 h-3.5 rounded-full bg-white border-2 shadow-md"
-                        style={{ borderColor: bmiInfo.color }}
-                        initial={{ left: "0%" }}
-                        animate={{ left: `${Math.min(Math.max(bmiInfo.pos * 100, 2), 96)}%` }}
-                        transition={{ type: "spring", stiffness: 120, damping: 18 }}
-                      />
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          </BentoCard>
+              <div className="mt-6">
+                <TextAreaField
+                  label="Medications"
+                  value={meds}
+                  onChange={setMeds}
+                  placeholder="Daily medications, supplements, or recent prescriptions..."
+                  rows={5}
+                />
+              </div>
+            </Panel>
 
-          {/* 4. Health Conditions */}
-          <BentoCard title="Health Conditions" icon={Heart} span="lg:col-span-8" accent="#C4503A" delay={0.2}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-6">
-                <div className="space-y-3">
-                  <label className="block text-[10px] font-bold uppercase tracking-[0.12em] text-[#8C6246]">Diabetes Status</label>
-                  <MultiSelectPills options={DIABETES_TYPES} selected={[diabetes]} onToggle={(v) => setDiabetes(v)} />
-                </div>
-                <div className="space-y-3">
-                  <label className="block text-[10px] font-bold uppercase tracking-[0.12em] text-[#8C6246]">Other Conditions</label>
-                  <MultiSelectPills
-                    options={[...COMMON_CONDITIONS, ...conditions.filter((c) => !COMMON_CONDITIONS.includes(c))]}
-                    selected={conditions}
-                    onToggle={(v) => handleToggle(conditions, setConditions, v)}
-                    removable
-                    onRemove={(v) => setConditions(conditions.filter((c) => c !== v))}
-                  />
-                  <div className="flex gap-2">
-                    <input value={customInput.condition} onChange={(e) => setCustomInput({ ...customInput, condition: e.target.value })}
-                      onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCustom("condition"); } }}
-                      placeholder="Add other..." className="flex-1 h-10 rounded-xl bg-[#F6F8F3] px-4 text-xs outline-none border border-transparent focus:border-[#8C6246]/30 focus:bg-white transition-all" />
-                    <button type="button" onClick={() => addCustom("condition")}
-                      className="h-10 w-10 rounded-xl bg-[#0A2318] text-white flex items-center justify-center hover:bg-[#153124] transition-colors active:scale-95">
-                      <Plus size={16} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-              <div className="space-y-3">
-                <label className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#8C6246]">
-                  <Pill size={12} /> Medications
-                </label>
-                <textarea value={meds} onChange={(e) => setMeds(e.target.value)}
-                  placeholder="List any daily medications..."
-                  className="w-full h-[150px] rounded-[1.75rem] bg-[#F6F8F3] p-5 text-sm outline-none resize-none border border-transparent focus:border-[#8C6246]/30 focus:bg-white transition-all" />
-              </div>
-            </div>
-          </BentoCard>
-
-          {/* 5. Allergies */}
-          <BentoCard title="Allergies & Intolerances" icon={AlertTriangle} span="lg:col-span-6" accent="#D9A441" delay={0.25}>
-            <div className="space-y-4">
-              <MultiSelectPills
-                options={[...COMMON_ALLERGIES, ...allergies.filter((a) => !COMMON_ALLERGIES.includes(a))]}
-                selected={allergies}
-                onToggle={(v) => handleToggle(allergies, setAllergies, v)}
-                removable
-                onRemove={(v) => setAllergies(allergies.filter((a) => a !== v))}
-              />
-              <div className="flex gap-2">
-                <input value={customInput.allergy} onChange={(e) => setCustomInput({ ...customInput, allergy: e.target.value })}
-                  onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCustom("allergy"); } }}
-                  placeholder="E.g. Pollen, Penicillin..." className="flex-1 h-11 rounded-xl bg-[#F6F8F3] px-4 text-xs outline-none border border-transparent focus:border-[#8C6246]/30 focus:bg-white transition-all" />
-                <button type="button" onClick={() => addCustom("allergy")}
-                  className="h-11 px-5 rounded-xl bg-[#0A2318] text-white text-[10px] font-bold uppercase tracking-widest hover:bg-[#153124] transition-colors active:scale-95">
-                  Add
-                </button>
-              </div>
-            </div>
-          </BentoCard>
-
-          {/* 6. Emergency & Notes */}
-          <BentoCard title="Emergency & Notes" icon={Phone} span="lg:col-span-6" accent="#5B8DEF" delay={0.3}>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <CustomInput label="Fasting Sugar" value={sugar} onChange={setSugar} unit="mg/dL" icon={Droplet} />
-                <CustomInput label="Blood Pressure" value={pressure} onChange={setPressure} placeholder="120/80" icon={Activity} />
-              </div>
-              <div className="space-y-4">
-                <CustomInput label="Emergency Contact" value={emergency} onChange={setEmergency} placeholder="Name & Phone" icon={Phone} />
-                <textarea value={notes} onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Additional notes..."
-                  className="w-full h-12 rounded-2xl bg-[#F6F8F3] p-4 text-xs outline-none resize-none focus:h-32 border border-transparent focus:border-[#8C6246]/30 focus:bg-white transition-all" />
-              </div>
-            </div>
-          </BentoCard>
-
-          {/* 7. Save */}
-          <div className="lg:col-span-12 mt-2">
-            <AnimatePresence>
-              {error && (
-                <motion.p
-                  initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                  className="mb-4 text-center text-sm text-[#C4503A] font-medium"
-                >
-                  {error}
-                </motion.p>
-              )}
-            </AnimatePresence>
             <button
               type="submit"
               disabled={saving}
               className={cn(
-                "w-full h-20 rounded-[2.25rem] flex items-center justify-center gap-4 transition-all active:scale-[0.98] shadow-[0_20px_50px_-15px_rgba(10,35,24,0.5)] relative overflow-hidden group disabled:opacity-90",
-                saved ? "bg-[#3FAE6F] text-white" : "bg-gradient-to-r from-[#0A2318] to-[#0D2A1C] text-white hover:from-[#153124] hover:to-[#153124]",
+                "inline-flex h-14 w-full items-center justify-center gap-3 rounded-lg px-5 text-sm font-bold uppercase tracking-[0.16em] text-[#E8EDE7] shadow-sm transition active:scale-[0.99] disabled:opacity-80",
+                saved ? "bg-[#4E9A62]" : "bg-[#0A2318] hover:bg-[#123624]",
               )}
             >
-              {saving && (
-                <motion.div
-                  className="absolute inset-0 bg-white/10"
-                  initial={{ x: "-100%" }}
-                  animate={{ x: "100%" }}
-                  transition={{ repeat: Infinity, duration: 1 }}
-                />
-              )}
-              <AnimatePresence mode="wait">
-                {saved ? (
-                  <motion.div key="saved" initial={{ opacity: 0, scale: 0.5 }} animate={{ opacity: 1, scale: 1 }} className="flex items-center gap-3">
-                    <CheckCircle size={24} />
-                    <span className="font-bold uppercase tracking-[0.2em] text-sm">Profile Saved</span>
-                  </motion.div>
-                ) : (
-                  <motion.div key="idle" className="flex items-center gap-4">
-                    <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center group-hover:rotate-12 transition-transform">
-                      <Save size={20} className="text-[#D4C1A0]" />
-                    </div>
-                    <span className="font-black uppercase tracking-[0.2em] text-sm">
-                      {saving ? "Saving..." : "Save Profile"}
-                    </span>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {saved ? <CheckCircle size={18} /> : <Save size={18} />}
+              {saved ? "Profile saved" : saving ? "Saving profile" : "Save profile"}
             </button>
-          </div>
-
+          </main>
         </div>
       </form>
+    </div>
+  );
+}
+
+function HeroMetric({
+  icon: Icon,
+  label,
+  value,
+  sub,
+  color,
+}: {
+  icon: ElementType;
+  label: string;
+  value: string;
+  sub: string;
+  color: string;
+}) {
+  return (
+    <div className="rounded-lg border border-white/12 bg-white/8 px-3.5 py-3 backdrop-blur">
+      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.14em] text-white/52">
+        <Icon size={13} style={{ color }} />
+        {label}
+      </div>
+      <p className="mt-1 font-serif text-2xl leading-none text-white">{value}</p>
+      <p className="mt-1 truncate text-xs text-[#E8EDE7]/50">{sub}</p>
+    </div>
+  );
+}
+
+function ProfileSummary({
+  completeness,
+  score,
+  scoreLabel,
+  scoreColor,
+  points,
+  stamps,
+  bmi,
+  bmiInfo,
+}: {
+  completeness: number;
+  score: number;
+  scoreLabel: string;
+  scoreColor: string;
+  points: number;
+  stamps: Stamp[];
+  bmi: string | null;
+  bmiInfo: ReturnType<typeof bmiCategory> | null;
+}) {
+  return (
+    <div className="rounded-lg border border-[#0A2318]/10 bg-white p-4 shadow-sm shadow-[#0A2318]/5">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#8C6246]">Profile map</p>
+          <h2 className="mt-1 font-serif text-2xl leading-tight text-[#0A2318]">Health passport</h2>
+        </div>
+        <div
+          className="grid h-14 w-14 place-items-center rounded-full"
+          style={{ background: `conic-gradient(#D6A64B ${completeness * 3.6}deg, rgba(10,35,24,0.1) 0deg)` }}
+        >
+          <div className="grid h-10 w-10 place-items-center rounded-full bg-[#F7F9F5] text-sm font-bold text-[#0A2318]">
+            {completeness}%
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <MiniStat label="Score" value={score.toString()} sub={scoreLabel} color={scoreColor} />
+        <MiniStat label="Points" value={points.toString()} sub="passport" color="#D6A64B" />
+        <MiniStat label="Stamps" value={`${stamps.length}/6`} sub="earned" color="#4F7DD4" />
+        <MiniStat label="BMI" value={bmi ?? "--"} sub={bmiInfo?.label ?? "pending"} color={bmiInfo?.color ?? "#7CA6B8"} />
+      </div>
+
+      <div className="mt-5 grid gap-2">
+        {ALL_STAMPS.map((stamp) => {
+          const earned = stamps.includes(stamp);
+          return (
+            <div key={stamp} className="flex items-center justify-between gap-3 rounded-lg border border-[#0A2318]/8 bg-[#F7F9F5] px-3 py-2">
+              <span className="text-xs font-bold text-[#0A2318]">{stamp}</span>
+              <span
+                className={cn(
+                  "h-2.5 w-12 rounded-full",
+                  earned ? "bg-[#5E7A5C]" : "bg-[#0A2318]/10",
+                )}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function SavePanel({ saving, saved, error }: { saving: boolean; saved: boolean; error: string }) {
+  return (
+    <div className="rounded-lg border border-[#0A2318]/10 bg-[#071C13] p-4 text-[#E8EDE7] shadow-sm shadow-[#0A2318]/8">
+      <div className="flex items-start gap-3">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/8 text-[#D6A64B]">
+          {saved ? <CheckCircle size={18} /> : <ShieldCheck size={18} />}
+        </span>
+        <div>
+          <p className="text-sm font-bold">{saved ? "Saved" : saving ? "Saving" : "Ready to save"}</p>
+          <p className="mt-1 text-xs leading-5 text-[#E8EDE7]/62">
+            Profile updates your identity, health flags, and care notes in one secure pass.
+          </p>
+        </div>
+      </div>
+      {error ? (
+        <p className="mt-4 rounded-lg border border-[#C4503A]/30 bg-[#C4503A]/12 px-3 py-2 text-xs font-semibold text-[#FFD8CF]">
+          {error}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function MiniStat({ label, value, sub, color }: { label: string; value: string; sub: string; color: string }) {
+  return (
+    <div className="rounded-lg border border-[#0A2318]/8 bg-[#F7F9F5] px-3 py-2.5">
+      <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#0A2318]/42">{label}</p>
+      <p className="mt-1 font-serif text-2xl leading-none text-[#0A2318]">{value}</p>
+      <p className="mt-1 truncate text-[11px] font-semibold" style={{ color }}>
+        {sub}
+      </p>
+    </div>
+  );
+}
+
+function Panel({
+  title,
+  icon: Icon,
+  accent,
+  children,
+}: {
+  title: string;
+  icon: ElementType;
+  accent: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="min-w-0 rounded-lg border border-[#0A2318]/10 bg-white p-4 shadow-sm shadow-[#0A2318]/5 sm:p-5">
+      <div className="mb-5 flex items-center gap-3">
+        <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg border bg-[#F7F9F5]" style={{ borderColor: `${accent}33`, color: accent }}>
+          <Icon size={18} />
+        </span>
+        <h2 className="font-serif text-2xl leading-tight text-[#0A2318]">{title}</h2>
+        <span className="h-px min-w-8 flex-1 bg-[#0A2318]/8" />
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function TextField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+  icon: Icon,
+  unit,
+  inputMode,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  type?: string;
+  icon?: ElementType;
+  unit?: string;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+}) {
+  return (
+    <label className="block min-w-0">
+      <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.14em] text-[#8C6246]">{label}</span>
+      <span className="relative block">
+        {Icon ? (
+          <Icon size={15} className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#0A2318]/34" />
+        ) : null}
+        <input
+          type={type}
+          value={value}
+          inputMode={inputMode}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          className={cn(
+            "h-12 w-full rounded-lg border border-[#0A2318]/10 bg-[#F7F9F5] text-sm text-[#0A2318] outline-none transition placeholder:text-[#0A2318]/34 focus:border-[#8C6246]/45 focus:bg-white",
+            Icon ? "pl-10 pr-3" : "px-3",
+            unit ? "pr-16" : "",
+          )}
+        />
+        {unit ? (
+          <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold uppercase tracking-wide text-[#0A2318]/36">
+            {unit}
+          </span>
+        ) : null}
+      </span>
+    </label>
+  );
+}
+
+function SelectField({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: readonly string[];
+}) {
+  return (
+    <label className="block min-w-0">
+      <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.14em] text-[#8C6246]">{label}</span>
+      <select
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="h-12 w-full rounded-lg border border-[#0A2318]/10 bg-[#F7F9F5] px-3 text-sm text-[#0A2318] outline-none transition focus:border-[#8C6246]/45 focus:bg-white"
+      >
+        {options.map((option) => (
+          <option key={option} value={option}>
+            {option}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
+function TextAreaField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  rows,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  rows: number;
+}) {
+  return (
+    <label className="block min-w-0">
+      <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.14em] text-[#8C6246]">{label}</span>
+      <textarea
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        rows={rows}
+        className="w-full resize-none rounded-lg border border-[#0A2318]/10 bg-[#F7F9F5] p-3 text-sm leading-6 text-[#0A2318] outline-none transition placeholder:text-[#0A2318]/34 focus:border-[#8C6246]/45 focus:bg-white"
+      />
+    </label>
+  );
+}
+
+function SegmentedControl({
+  label,
+  options,
+  value,
+  onChange,
+}: {
+  label: string;
+  options: { label: string; value: string; Icon: ElementType }[];
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <div className="min-w-0">
+      <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#8C6246]">{label}</p>
+      <div className="grid grid-cols-2 gap-2">
+        {options.map(({ label: optionLabel, value: optionValue, Icon }) => {
+          const selected = value === optionValue;
+          return (
+            <button
+              key={optionValue}
+              type="button"
+              onClick={() => onChange(optionValue)}
+              className={cn(
+                "inline-flex h-12 items-center justify-center gap-2 rounded-lg border px-3 text-sm font-bold transition active:scale-[0.98]",
+                selected
+                  ? "border-[#0A2318] bg-[#0A2318] text-[#E8EDE7]"
+                  : "border-[#0A2318]/10 bg-[#F7F9F5] text-[#0A2318]/58 hover:border-[#0A2318]/22 hover:text-[#0A2318]",
+              )}
+            >
+              <Icon size={15} />
+              {optionLabel}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ChoiceGroup<T extends string>({
+  label,
+  options,
+  value,
+  onChange,
+  compact,
+}: {
+  label: string;
+  options: readonly T[];
+  value: string;
+  onChange: (value: T) => void;
+  compact?: boolean;
+}) {
+  return (
+    <div className="min-w-0">
+      <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#8C6246]">{label}</p>
+      <div className="flex flex-wrap gap-2">
+        {options.map((option) => {
+          const selected = value === option;
+          return (
+            <button
+              key={option}
+              type="button"
+              onClick={() => onChange(option)}
+              className={cn(
+                "inline-flex h-10 items-center justify-center rounded-lg border px-3 text-xs font-bold transition active:scale-[0.98]",
+                compact && "h-9 px-2.5 text-[11px]",
+                selected
+                  ? "border-[#0A2318] bg-[#0A2318] text-[#E8EDE7]"
+                  : "border-[#0A2318]/10 bg-[#F7F9F5] text-[#0A2318]/58 hover:border-[#0A2318]/22 hover:text-[#0A2318]",
+              )}
+            >
+              {option}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TagEditor({
+  label,
+  options,
+  selected,
+  onToggle,
+  customValue,
+  onCustomChange,
+  onAdd,
+  onRemove,
+  accent,
+}: {
+  label: string;
+  options: string[];
+  selected: string[];
+  onToggle: (value: string) => void;
+  customValue: string;
+  onCustomChange: (value: string) => void;
+  onAdd: () => void;
+  onRemove: (value: string) => void;
+  accent: string;
+}) {
+  const customSelected = selected.filter((item) => !options.includes(item));
+
+  return (
+    <div className="min-w-0">
+      <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#8C6246]">{label}</p>
+      <div className="flex flex-wrap gap-2">
+        {[...options, ...customSelected].map((option) => {
+          const isSelected = selected.includes(option);
+          const isCustom = !options.includes(option);
+          return (
+            <button
+              key={option}
+              type="button"
+              onClick={() => (isCustom ? onRemove(option) : onToggle(option))}
+              className={cn(
+                "inline-flex h-9 items-center gap-1.5 rounded-lg border px-3 text-xs font-bold transition active:scale-[0.98]",
+                isSelected
+                  ? "border-[#0A2318] bg-[#0A2318] text-[#E8EDE7]"
+                  : "border-[#0A2318]/10 bg-[#F7F9F5] text-[#0A2318]/58 hover:border-[#0A2318]/22 hover:text-[#0A2318]",
+              )}
+              style={isSelected ? { backgroundColor: accent, borderColor: accent, color: accent === "#D6A64B" ? "#0A2318" : "#FFFFFF" } : undefined}
+            >
+              {option}
+              {isCustom ? <X size={12} /> : null}
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="mt-3 flex gap-2">
+        <input
+          value={customValue}
+          onChange={(event) => onCustomChange(event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              onAdd();
+            }
+          }}
+          placeholder="Add other..."
+          className="h-10 min-w-0 flex-1 rounded-lg border border-[#0A2318]/10 bg-[#F7F9F5] px-3 text-sm text-[#0A2318] outline-none transition placeholder:text-[#0A2318]/34 focus:border-[#8C6246]/45 focus:bg-white"
+        />
+        <button
+          type="button"
+          onClick={onAdd}
+          className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-lg bg-[#0A2318] px-3 text-xs font-bold text-[#E8EDE7] transition hover:bg-[#123624] active:scale-[0.98]"
+        >
+          <Plus size={14} />
+          Add
+        </button>
+      </div>
     </div>
   );
 }
