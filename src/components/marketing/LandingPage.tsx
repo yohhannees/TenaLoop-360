@@ -13,6 +13,7 @@ import {
   Dumbbell,
   Mail,
   Send,
+  ShieldCheck,
   Store,
   Users,
   Utensils,
@@ -46,73 +47,73 @@ const spiralStyle: CSSProperties = {
 
 const collageTiles = [
   {
-    src: "/tenaloop-photo-dashboard.jpg",
-    alt: "Real wellness app on a phone",
+    src: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&w=600&q=80",
+    alt: "Sunlit yoga meditation practice",
     position: "50% 50%",
   },
   {
-    src: "/tenaloop-photo-mind.jpg",
-    alt: "Real breath practice in a quiet room",
+    src: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&w=600&q=80",
+    alt: "Fresh nourishing food on a table",
     position: "50% 48%",
   },
   {
-    src: "/tenaloop-photo-food-plate.jpg",
-    alt: "Real nourishing meal on a table",
+    src: "https://images.unsplash.com/photo-1476480862126-209bfaa8edc8?auto=format&fit=crop&w=600&q=80",
+    alt: "Runner moving through morning light",
     position: "50% 52%",
   },
   {
-    src: "/tenaloop-photo-circle-group.jpg",
-    alt: "Real community gathering from a distance",
+    src: "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?auto=format&fit=crop&w=600&q=80",
+    alt: "Aesthetic yoga pose in warm light",
     position: "50% 42%",
   },
   {
-    src: "/tenaloop-photo-move.jpg",
-    alt: "Real walking group from behind",
+    src: "https://images.unsplash.com/photo-1518611012118-696072aa579a?auto=format&fit=crop&w=600&q=80",
+    alt: "Movement training in a calm studio",
     position: "50% 50%",
   },
   {
-    src: "/tenaloop-photo-market.jpg",
-    alt: "Real wellness provider interior",
+    src: "https://images.unsplash.com/photo-1519823551278-64ac92734fb1?auto=format&fit=crop&w=600&q=80",
+    alt: "Restorative spa treatment detail",
     position: "50% 54%",
   },
   {
-    src: "/tenaloop-photo-contact.jpg",
-    alt: "Real outdoor wellness path",
+    src: "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=600&q=80",
+    alt: "Strength training gym interior",
     position: "50% 50%",
   },
   {
-    src: "/tenaloop-photo-dashboard.jpg",
-    alt: "Real TenaLoop-style mobile app moment",
+    src: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=600&q=80",
+    alt: "Serene interior space with natural light",
     position: "50% 50%",
   },
   {
-    src: "/tenaloop-photo-food-plate.jpg",
-    alt: "Real local meal guidance scene",
+    src: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=600&q=80",
+    alt: "Colorful healthy salad bowl",
     position: "50% 52%",
   },
   {
-    src: "/tenaloop-photo-mind.jpg",
-    alt: "Real breathing practice from afar",
+    src: "https://images.unsplash.com/photo-1538805060514-97d9cc17730c?auto=format&fit=crop&w=600&q=80",
+    alt: "Focused fitness movement portrait",
     position: "50% 48%",
   },
   {
-    src: "/tenaloop-photo-circle-group.jpg",
-    alt: "Real peer support circle from above",
+    src: "https://images.unsplash.com/photo-1552196563-55cd4e45efb3?auto=format&fit=crop&w=600&q=80",
+    alt: "Yoga stretch in a peaceful room",
     position: "50% 42%",
   },
   {
-    src: "/tenaloop-photo-market.jpg",
-    alt: "Real provider booking space",
+    src: "https://images.unsplash.com/photo-1529693662653-9d480530a697?auto=format&fit=crop&w=600&q=80",
+    alt: "Warm spa and wellness interior",
     position: "50% 54%",
   },
   {
-    src: "/tenaloop-photo-move.jpg",
-    alt: "Real distant movement practice",
+    src: "https://images.unsplash.com/photo-1515377905703-c4788e51af15?auto=format&fit=crop&w=600&q=80",
+    alt: "Calm self care and wellness scene",
     position: "50% 50%",
   },
   {
-    src: "/tenaloop-photo-contact.jpg",
-    alt: "Real start of a wellness loop",
+    src: "https://images.unsplash.com/photo-1505576399279-565b52d4ac71?auto=format&fit=crop&w=600&q=80",
+    alt: "Fresh fruit and healthy eating scene",
     position: "50% 50%",
   },
 ];
@@ -148,6 +149,16 @@ const contents = [
     title: "The psychology of daily care",
     label: "Our method",
   },
+];
+
+const liveSignals = [
+  { icon: Wind, label: "Breath", value: "3 min reset" },
+  { icon: Activity, label: "Score", value: "52 watch" },
+  { icon: Utensils, label: "Plate", value: "fiber swap" },
+  { icon: Dumbbell, label: "Move", value: "10 min walk" },
+  { icon: Users, label: "Circle", value: "mood pulse" },
+  { icon: Store, label: "Market", value: "care match" },
+  { icon: ShieldCheck, label: "Privacy", value: "local first" },
 ];
 
 const rootedSteps = [
@@ -366,17 +377,42 @@ function HeroTile({
 }) {
   return (
     <div className="group relative aspect-[3/4] overflow-hidden bg-[#0A2318]">
-      <Image
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
         src={src}
         alt={alt}
-        fill
-        sizes="(max-width: 768px) 25vw, 140px"
-        className="object-cover saturate-[0.92] transition-all duration-300 group-hover:scale-105 group-hover:saturate-100"
+        className="h-full w-full object-cover saturate-[0.92] transition-all duration-300 group-hover:scale-105 group-hover:saturate-100"
         style={{ objectPosition: position }}
       />
       <div className="absolute inset-0 bg-[#0A2318]/18 mix-blend-multiply" />
       <div className="absolute bottom-1 left-1 text-[8px] font-mono text-[#E8EDE7] opacity-0 transition-opacity group-hover:opacity-100">
         FIG.{index + 1}
+      </div>
+    </div>
+  );
+}
+
+function LiveSignalRail() {
+  const rail = [...liveSignals, ...liveSignals];
+
+  return (
+    <div className="relative overflow-hidden border-y border-[#0A2318]/18 py-3">
+      <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-14 bg-gradient-to-r from-[#8C6246] to-transparent" />
+      <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-14 bg-gradient-to-l from-[#8C6246] to-transparent" />
+      <div className="tl-marquee flex w-max gap-2">
+        {rail.map((item, index) => {
+          const Icon = item.icon;
+          return (
+            <span
+              key={`${item.label}-${index}`}
+              className="inline-flex h-10 items-center gap-2 rounded-full border border-[#0A2318]/18 bg-[#0A2318]/8 px-3 font-mono text-[10px] font-bold uppercase tracking-widest text-[#0A2318]"
+            >
+              <Icon size={13} />
+              {item.label}
+              <span className="rounded-full bg-[#0A2318] px-2 py-0.5 text-[#D4C1A0]">{item.value}</span>
+            </span>
+          );
+        })}
       </div>
     </div>
   );
@@ -494,10 +530,14 @@ export default function LandingPage() {
             </p>
           </div>
 
+          <div className="relative z-10 mx-auto mt-6 w-full max-w-4xl">
+            <LiveSignalRail />
+          </div>
+
           <div className="relative z-10 mx-auto my-8 grid w-full max-w-[18rem] grid-cols-3 gap-2 px-2 sm:max-w-none sm:grid-cols-4 md:my-12 md:grid-cols-7 md:px-12">
             {collageTiles.map((tile, index) => (
               <HeroTile
-                key={`${tile.src}-${index}`}
+                key={tile.src}
                 index={index}
                 src={tile.src}
                 alt={tile.alt}
