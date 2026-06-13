@@ -28,6 +28,7 @@ const NAV_LINKS = [
   { href: "/move", label: "Move", icon: Dumbbell },
   { href: "/circles", label: "Circles", icon: Users },
   { href: "/market", label: "Market", icon: Store },
+  { href: "/profile", label: "Profile", icon: User },
 ] as const;
 
 export default function AppHeader() {
@@ -95,15 +96,6 @@ export default function AppHeader() {
                     {unread > 9 ? "9+" : unread}
                   </span>
                 )}
-              </Link>
-
-              {/* Profile */}
-              <Link
-                href="/profile"
-                aria-label="Profile"
-                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#0A2318]/12 bg-[#E8EDE7]/85 text-[#0A2318]/72 shadow-sm shadow-[#0A2318]/5 transition hover:border-[#0A2318]/35 hover:text-[#0A2318]"
-              >
-                <User size={16} />
               </Link>
 
               <Link

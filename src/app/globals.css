@@ -3,11 +3,47 @@
 :root {
   --background: #e5eae3;
   --foreground: #0a2318;
+  /* shadcn-compatible design tokens */
+  --primary: #0a2318;
+  --primary-foreground: #e8ede7;
+  --secondary: #d4c1a0;
+  --secondary-foreground: #0a2318;
+  --muted: #d4c1a0;
+  --muted-foreground: #5a7060;
+  --accent: #d4c1a0;
+  --accent-foreground: #0a2318;
+  --destructive: #c4503a;
+  --destructive-foreground: #e8ede7;
+  --border: #0a2318;
+  --input: #0a2318;
+  --ring: #8c6246;
+  --card: #e8ede7;
+  --card-foreground: #0a2318;
+  --popover: #e8ede7;
+  --popover-foreground: #0a2318;
+  --radius: 0.5rem;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
   --font-sans: Arial, Helvetica, sans-serif;
   --font-serif: Georgia, "Times New Roman", serif;
   --font-mono: "Courier New", Courier, monospace;

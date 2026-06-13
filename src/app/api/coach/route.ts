@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { ChatMessage, CheckIn } from "@/lib/types";
-import { calculateScore, coachReply } from "@/lib/score";
+import { calculateScore } from "@/lib/score";
 import { getCurrentUser } from "@/lib/server/auth";
 import { addChatMessage } from "@/lib/server/wellness";
 import {
@@ -43,7 +43,6 @@ export async function POST(request: Request) {
           ? calculateScore(checkIn)
           : undefined;
     const messages = normalizeMessages(body.messages, message);
-    const fallbackReply = buildFallbackReply(message, checkIn, score);
     const provider = getProvider();
     const currentUser = await getCurrentUser().catch(() => null);
 
@@ -57,7 +56,6 @@ export async function POST(request: Request) {
         messages,
         checkIn,
         score,
-        fallbackReply,
         userId: currentUser?.id,
       });
     }
@@ -67,7 +65,6 @@ export async function POST(request: Request) {
       messages,
       checkIn,
       score,
-      fallbackReply,
       userId: currentUser?.id,
     });
   } catch (error) {
@@ -82,26 +79,25 @@ async function handleGeminiRequest({
   messages,
   checkIn,
   score,
-  fallbackReply,
   userId,
 }: {
   message: string;
   messages: ChatMessage[];
   checkIn?: CheckIn;
   score?: number;
-  fallbackReply: string;
   userId?: string;
 }) {
   const apiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
 
   if (!apiKey) {
-    const reply = `${fallbackReply}\n\nOffline note: add GEMINI_API_KEY on the server to enable live Gemini replies.`;
-    await persistAssistantReply(userId, reply, "fallback");
-    return NextResponse.json({
-      reply,
-      source: "fallback",
-      missingKey: true,
-    });
+    return NextResponse.json(
+      {
+        error: "GEMINI_API_KEY is missing on the server. Add it to .env.local and restart the dev server.",
+        source: "gemini",
+        missingKey: true,
+      },
+      { status: 503 },
+    );
   }
 
   const model = process.env.GEMINI_MODEL?.trim() || DEFAULT_GEMINI_MODEL;
@@ -125,26 +121,24 @@ async function handleGeminiRequest({
 
   if (!response.ok) {
     const messageFromApi = getGeminiErrorMessage(data);
-    const reply = `${fallbackReply}\n\nGemini note: ${getUserFacingGeminiError(messageFromApi)}`;
-    await persistAssistantReply(userId, reply, "fallback");
     return NextResponse.json(
       {
-        reply,
-        source: "fallback",
-        error: messageFromApi,
+        error: getUserFacingGeminiError(messageFromApi),
+        source: "gemini",
       },
-      { status: 200 },
+      { status: response.status === 429 ? 503 : 502 },
     );
   }
 
   const reply = extractGeminiResponseText(data);
   if (!reply) {
-    const fallback = `${fallbackReply}\n\nGemini note: the response did not include text, so TenaBot used the local safety fallback.`;
-    await persistAssistantReply(userId, fallback, "fallback");
-    return NextResponse.json({
-      reply: fallback,
-      source: "fallback",
-    });
+    return NextResponse.json(
+      {
+        error: "Gemini returned no text. Retry or change GEMINI_MODEL.",
+        source: "gemini",
+      },
+      { status: 502 },
+    );
   }
 
   await persistAssistantReply(userId, reply, "gemini", model);
@@ -156,26 +150,25 @@ async function handleOpenAIRequest({
   messages,
   checkIn,
   score,
-  fallbackReply,
   userId,
 }: {
   message: string;
   messages: ChatMessage[];
   checkIn?: CheckIn;
   score?: number;
-  fallbackReply: string;
   userId?: string;
 }) {
   const apiKey = process.env.OPENAI_API_KEY;
 
   if (!apiKey) {
-    const reply = `${fallbackReply}\n\nOffline note: add OPENAI_API_KEY on the server to enable live OpenAI replies.`;
-    await persistAssistantReply(userId, reply, "fallback");
-    return NextResponse.json({
-      reply,
-      source: "fallback",
-      missingKey: true,
-    });
+    return NextResponse.json(
+      {
+        error: "OPENAI_API_KEY is missing on the server. Add it to .env.local and restart the dev server.",
+        source: "openai",
+        missingKey: true,
+      },
+      { status: 503 },
+    );
   }
 
   const model = process.env.OPENAI_MODEL?.trim() || DEFAULT_OPENAI_MODEL;
@@ -212,26 +205,24 @@ async function handleOpenAIRequest({
   if (!response.ok) {
     const messageFromApi = getOpenAIErrorMessage(data);
     const userFacingMessage = getUserFacingOpenAIError(messageFromApi);
-    const reply = `${fallbackReply}\n\nOpenAI note: ${userFacingMessage}`;
-    await persistAssistantReply(userId, reply, "fallback");
     return NextResponse.json(
       {
-        reply,
-        source: "fallback",
-        error: messageFromApi,
+        error: userFacingMessage,
+        source: "openai",
       },
-      { status: 200 },
+      { status: response.status === 429 ? 503 : 502 },
     );
   }
 
   const reply = extractResponseText(data);
   if (!reply) {
-    const fallback = `${fallbackReply}\n\nOpenAI note: the response did not include text, so TenaBot used the local safety fallback.`;
-    await persistAssistantReply(userId, fallback, "fallback");
-    return NextResponse.json({
-      reply: fallback,
-      source: "fallback",
-    });
+    return NextResponse.json(
+      {
+        error: "OpenAI returned no text. Retry or change OPENAI_MODEL.",
+        source: "openai",
+      },
+      { status: 502 },
+    );
   }
 
   await persistAssistantReply(userId, reply, "openai", model);
@@ -286,22 +277,6 @@ function isCheckIn(value: unknown): value is CheckIn {
     typeof checkIn.support === "string" &&
     Array.isArray(checkIn.painAreas)
   );
-}
-
-function buildFallbackReply(message: string, checkIn?: CheckIn, score?: number) {
-  if (checkIn && typeof score === "number") {
-    return coachReply(message, checkIn, score);
-  }
-
-  return [
-    "I can help with a TenaLoop reset, but I do not have your check-in context yet.",
-    "",
-    "Start simple:",
-    "1. Do a 3-minute Efoy breathing reset.",
-    "2. Drink water before your next coffee or meal.",
-    "3. Take a 10-minute walk if your body feels safe.",
-    "4. If symptoms feel severe, unusual, or unsafe, contact a trusted person or licensed provider.",
-  ].join("\n");
 }
 
 async function persistAssistantReply(

@@ -124,6 +124,8 @@ export function publicUser(user: {
   name: string | null;
   role: string;
   organization: string | null;
+  gender?: string | null;
+  dateOfBirth?: Date | string | null;
 }) {
   return {
     id: user.id,
@@ -131,5 +133,9 @@ export function publicUser(user: {
     name: user.name,
     role: user.role,
     organization: user.organization,
+    gender: user.gender ?? null,
+    dateOfBirth: user.dateOfBirth instanceof Date
+      ? user.dateOfBirth.toISOString()
+      : (user.dateOfBirth ?? null),
   };
 }

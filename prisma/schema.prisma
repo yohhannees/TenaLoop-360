@@ -13,11 +13,14 @@ model User {
   name          String?
   role          String    @default("Individual")
   organization  String?
+  gender        String?   // "Male" | "Female" | "Non-binary" | "Prefer not to say"
+  dateOfBirth   DateTime?
   emailVerified DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   state             WellnessState?
+  healthProfile     UserHealthProfile?
   sessions          Session[]
   loginCodes        EmailLoginCode[]
   checkIns          CheckInEntry[]
@@ -36,6 +39,25 @@ model User {
   providerReviews   ProviderReview[]
   circlePosts       CirclePost[]
   notifications     Notification[]
+}
+
+model UserHealthProfile {
+  id                String   @id @default(cuid())
+  userId            String   @unique
+  weightKg          Float?
+  heightCm          Float?
+  bloodType         String?  // e.g. "A+", "O-"
+  diabetesType      String?  // "None" | "Type 1" | "Type 2" | "Pre-diabetic"
+  allergies         Json     @default("[]")   // string[]
+  conditions        Json     @default("[]")   // string[] – other chronic conditions
+  medications       String?
+  bloodSugarFasting Float?   // mg/dL
+  bloodPressure     String?  // "120/80"
+  emergencyContact  String?
+  notes             String?
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model WellnessState {

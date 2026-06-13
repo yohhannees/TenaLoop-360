@@ -1,12 +1,12 @@
 import { DEFAULT_CHECK_IN, DEFAULT_STAMPS, INITIAL_MESSAGES } from "@/lib/defaults";
 import {
-  AuthUser,
   BookingEntry,
   ChatMessage,
   CheckIn,
   Language,
   MealLogEntry,
   Stamp,
+  UserHealthProfile,
   WellnessBackendState,
 } from "@/lib/types";
 import { calculateScore, buildPlan } from "@/lib/score";
@@ -74,9 +74,19 @@ export async function ensureWellnessState(userId: string) {
   });
 }
 
-export async function getBackendState(user: AuthUser): Promise<WellnessBackendState> {
+type WellnessUser = {
+  id: string;
+  email: string;
+  name: string | null;
+  role: string;
+  organization: string | null;
+  gender?: string | null;
+  dateOfBirth?: Date | string | null;
+};
+
+export async function getBackendState(user: WellnessUser): Promise<WellnessBackendState> {
   const state = await ensureWellnessState(user.id);
-  const [messages, recentMeals, bookings] = await Promise.all([
+  const [messages, recentMeals, bookings, rawProfile] = await Promise.all([
     prisma.chatMessage.findMany({
       where: { userId: user.id },
       orderBy: { createdAt: "asc" },
@@ -92,11 +102,34 @@ export async function getBackendState(user: AuthUser): Promise<WellnessBackendSt
       orderBy: { createdAt: "desc" },
       take: 12,
     }),
+    prisma.userHealthProfile.findUnique({ where: { userId: user.id } }),
   ]);
+
+  const healthProfile: UserHealthProfile | null = rawProfile
+    ? {
+        weightKg: rawProfile.weightKg,
+        heightCm: rawProfile.heightCm,
+        bloodType: rawProfile.bloodType,
+        diabetesType: rawProfile.diabetesType,
+        allergies: toStringArray(rawProfile.allergies),
+        conditions: toStringArray(rawProfile.conditions),
+        medications: rawProfile.medications,
+        bloodSugarFasting: rawProfile.bloodSugarFasting,
+        bloodPressure: rawProfile.bloodPressure,
+        emergencyContact: rawProfile.emergencyContact,
+        notes: rawProfile.notes,
+      }
+    : null;
+
+  // Derive womenWellness from gender so the feature activates automatically
+  const baseCheckIn = normalizeCheckIn(state.checkIn);
+  const isWoman = (user.gender ?? null) === "Female";
+  const checkIn: CheckIn = { ...baseCheckIn, womenWellness: isWoman || baseCheckIn.womenWellness };
 
   return {
     user: publicUser(user),
-    checkIn: normalizeCheckIn(state.checkIn),
+    healthProfile,
+    checkIn,
     stamps: toStampArray(state.stamps),
     points: state.points,
     savedProviderMatches: toStringArray(state.savedProviderMatches),

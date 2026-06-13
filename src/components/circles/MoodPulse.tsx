@@ -1,14 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { cn } from "@/lib/utils";
+import { useCallback, useEffect, useState } from "react";
+
+const INK = "#211D17";
+const PAPER = "#F6F1E8";
+const BROWN = "#9A6B4A";
 
 type CircleMood = "Low" | "Okay" | "Good";
 
 const MOOD_COLOR: Record<CircleMood, string> = {
-  Low:  "#C4503A",
-  Okay: "#C4956A",
-  Good: "#0A2318",
+  Low: "#C05E3A",
+  Okay: "#C2913C",
+  Good: "#5E7A5C",
 };
 
 type Props = { circleId?: string };
@@ -30,28 +33,15 @@ export default function MoodPulse({ circleId }: Props) {
   const [myMood, setMyMood] = useState<CircleMood | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [summary, setSummary] = useState<MoodSummary>(EMPTY_SUMMARY);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
-    void loadPulse();
-  }, [circleId]);
-
-  async function loadPulse() {
+  const loadPulse = useCallback(async () => {
     if (!circleId) return;
-    setIsLoading(true);
-    setError("");
-
     try {
-      const response = await fetch(`/api/circles/check-ins?circleId=${encodeURIComponent(circleId)}`, {
-        cache: "no-store",
-      });
-      const data = (await response.json().catch(() => null)) as {
-        moodSummary?: MoodSummary;
-        error?: string;
-      } | null;
-
+      const response = await fetch(`/api/circles/check-ins?circleId=${encodeURIComponent(circleId)}`, { cache: "no-store" });
+      const data = (await response.json().catch(() => null)) as { moodSummary?: MoodSummary; error?: string } | null;
       if (!response.ok) throw new Error(data?.error || "Mood pulse could not be loaded.");
       setSummary(data?.moodSummary ?? EMPTY_SUMMARY);
     } catch (err) {
@@ -60,13 +50,17 @@ export default function MoodPulse({ circleId }: Props) {
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [circleId]);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => { void loadPulse(); }, 0);
+    return () => window.clearTimeout(timer);
+  }, [loadPulse]);
 
   async function submitMood() {
     if (!myMood) return;
     setIsSubmitting(true);
     setError("");
-
     try {
       const response = await fetch("/api/circles/check-ins", {
         method: "POST",
@@ -74,7 +68,6 @@ export default function MoodPulse({ circleId }: Props) {
         body: JSON.stringify({ circleId, mood: myMood }),
       });
       const data = (await response.json().catch(() => null)) as { error?: string } | null;
-
       if (!response.ok) throw new Error(data?.error || "Mood could not be shared.");
       setSubmitted(true);
       await loadPulse();
@@ -86,87 +79,69 @@ export default function MoodPulse({ circleId }: Props) {
   }
 
   return (
-    <section className="rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-5 shadow-sm shadow-[#0A2318]/5">
-      <p className="text-xs font-bold uppercase text-[#8C6246]">Group mood</p>
-      <h2 className="font-serif text-2xl text-[#0A2318]">Community pulse</h2>
+    <section className="rounded-3xl border p-6" style={{ background: "#fff", borderColor: `${INK}12` }}>
+      <p className="text-[10px] font-bold uppercase tracking-[0.22em]" style={{ color: BROWN }}>Group mood</p>
+      <h2 className="mt-1 font-serif text-2xl" style={{ color: INK }}>Community pulse</h2>
 
-      {/* Live snapshot */}
-      <div className="mt-4 grid gap-2">
+      {/* Snapshot */}
+      <div className="mt-4 grid gap-2.5">
         {(["Good", "Okay", "Low"] as CircleMood[]).map((mood) => (
           <div key={mood}>
             <div className="mb-1 flex items-center justify-between text-xs">
-              <span className="font-medium text-[#0A2318]/70">{mood}</span>
+              <span className="font-medium" style={{ color: `${INK}75` }}>{mood}</span>
               <span className="font-semibold" style={{ color: MOOD_COLOR[mood] }}>{summary.percentages[mood]}%</span>
             </div>
-            <div className="h-2.5 overflow-hidden rounded-full bg-[#0A2318]/8">
-              <div
-                className="h-full rounded-full transition-all duration-700"
-                style={{ width: `${summary.percentages[mood]}%`, backgroundColor: MOOD_COLOR[mood] }}
-              />
+            <div className="h-2.5 overflow-hidden rounded-full" style={{ background: `${INK}0D` }}>
+              <div className="h-full rounded-full transition-all duration-700" style={{ width: `${summary.percentages[mood]}%`, background: MOOD_COLOR[mood] }} />
             </div>
           </div>
         ))}
       </div>
 
-      {/* 7-day trend mini chart */}
+      {/* Trend */}
       <div className="mt-5">
-        <p className="mb-2 text-xs font-bold uppercase text-[#0A2318]/40">7-day Good trend</p>
-        <div className="flex items-end gap-1 h-12">
+        <p className="mb-2 text-[10px] font-bold uppercase tracking-wide" style={{ color: `${INK}45` }}>7-day Good trend</p>
+        <div className="flex h-12 items-end gap-1">
           {summary.labels.map((day, i) => {
             const h = Math.max(4, summary.goodTrend[i] * 1.1);
             return (
-              <div key={day} className="flex flex-1 flex-col items-center gap-1">
-                <div
-                  className="w-full rounded-t-md bg-[#0A2318]"
-                  style={{ height: `${h}px`, opacity: 0.35 + Math.max(0.2, summary.goodTrend[i] / 100) * 0.65 }}
-                />
-                <span className="text-[9px] text-[#0A2318]/35">{day}</span>
+              <div key={`${day || "empty"}-${i}`} className="flex flex-1 flex-col items-center gap-1">
+                <div className="w-full rounded-t-md" style={{ height: `${h}px`, background: SAGE_FOR(summary.goodTrend[i]) }} />
+                <span className="text-[9px]" style={{ color: `${INK}35` }}>{day}</span>
               </div>
             );
           })}
         </div>
       </div>
 
-      <p className="mt-3 text-[10px] leading-5 text-[#0A2318]/40">
-        {isLoading
-          ? "Loading live circle mood..."
-          : summary.total > 0
-            ? `${summary.total} mood check-in${summary.total === 1 ? "" : "s"} counted this week.`
-            : "No mood check-ins logged for this circle this week."}
+      <p className="mt-3 text-[10px] leading-5" style={{ color: `${INK}45` }}>
+        {isLoading ? "Loading live circle mood…"
+          : summary.total > 0 ? `${summary.total} mood check-in${summary.total === 1 ? "" : "s"} counted this week.`
+          : "No mood check-ins logged for this circle this week."}
       </p>
 
-      {/* My mood contribution */}
-      <div className="mt-5 border-t border-[#0A2318]/8 pt-4">
-        <p className="text-xs font-semibold text-[#0A2318]/55 mb-2">Add your mood to the pulse</p>
+      {/* My contribution */}
+      <div className="mt-5 border-t pt-4" style={{ borderColor: `${INK}0D` }}>
+        <p className="mb-2 text-xs font-semibold" style={{ color: `${INK}60` }}>Add your mood to the pulse</p>
         {submitted ? (
-          <p className="rounded-2xl bg-[#0A2318]/6 py-2 text-center text-sm font-medium text-[#0A2318]/65">
+          <p className="rounded-2xl py-2.5 text-center text-sm font-medium" style={{ background: `${SAGE}15`, color: SAGE }}>
             Mood shared — thank you 🤝
           </p>
         ) : (
           <div className="flex gap-2">
-            {(["Low", "Okay", "Good"] as CircleMood[]).map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setMyMood(m)}
-                disabled={isSubmitting}
-                className={cn(
-                  "flex-1 h-9 rounded-full border text-xs font-semibold transition",
-                  myMood === m
-                    ? "border-[#0A2318] bg-[#0A2318] text-[#D4C1A0]"
-                    : "border-[#0A2318]/12 bg-[#E5EAE3] text-[#0A2318]/55 hover:border-[#0A2318]/30",
-                )}
-              >
-                {m}
-              </button>
-            ))}
+            {(["Low", "Okay", "Good"] as CircleMood[]).map((m) => {
+              const on = myMood === m;
+              return (
+                <button key={m} type="button" onClick={() => setMyMood(m)} disabled={isSubmitting}
+                  className="h-9 flex-1 rounded-full text-xs font-semibold transition"
+                  style={{ background: on ? MOOD_COLOR[m] : "transparent", color: on ? "#fff" : `${INK}65`, border: `1.5px solid ${on ? MOOD_COLOR[m] : `${INK}16`}` }}>
+                  {m}
+                </button>
+              );
+            })}
             {myMood && (
-              <button
-                type="button"
-                onClick={submitMood}
-                disabled={isSubmitting}
-                className="h-9 rounded-full bg-[#8C6246] px-4 text-xs font-bold text-[#E8EDE7] transition hover:bg-[#724F38] disabled:opacity-55"
-              >
+              <button type="button" onClick={submitMood} disabled={isSubmitting}
+                className="h-9 rounded-full px-4 text-xs font-bold transition disabled:opacity-55" style={{ background: INK, color: PAPER }}>
                 {isSubmitting ? "Saving" : "Share"}
               </button>
             )}
@@ -175,14 +150,20 @@ export default function MoodPulse({ circleId }: Props) {
       </div>
 
       {error && (
-        <p className="mt-3 rounded-2xl border border-[#C4503A]/20 bg-[#C4503A]/8 px-3 py-2 text-xs font-semibold text-[#C4503A]">
+        <p className="mt-3 rounded-2xl px-3 py-2 text-xs font-semibold" style={{ background: "#C05E3A14", color: "#C05E3A", border: "1px solid #C05E3A33" }}>
           {error}
         </p>
       )}
 
-      <p className="mt-3 text-[10px] leading-5 text-[#0A2318]/40">
+      <p className="mt-3 text-[10px] leading-5" style={{ color: `${INK}40` }}>
         Responses are aggregated for the circle. Names are not shown in the pulse.
       </p>
     </section>
   );
+}
+
+const SAGE = "#5E7A5C";
+function SAGE_FOR(pct: number) {
+  const opacity = 0.35 + Math.max(0.2, pct / 100) * 0.65;
+  return `rgba(94,122,92,${opacity})`;
 }

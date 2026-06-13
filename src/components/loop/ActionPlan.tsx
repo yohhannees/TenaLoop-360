@@ -59,6 +59,17 @@ export default function ActionPlan() {
     joinCircle,
   } = useWellness();
   const [resetPlayed, setResetPlayed] = useState(false);
+  const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set());
+
+  function completeStep(step: string, stamp: RootedPathItem["stamp"]) {
+    if (completedSteps.has(step)) return;
+    award(stamp, 12);
+    setCompletedSteps((prev) => {
+      const next = new Set(prev);
+      next.add(step);
+      return next;
+    });
+  }
 
   const breakdown = useMemo(() => getTenaScoreBreakdown(checkIn), [checkIn]);
   const path = useMemo(() => buildRootedPath(checkIn, score), [checkIn, score]);
@@ -153,37 +164,70 @@ export default function ActionPlan() {
             <h3 className="mt-2 font-serif text-2xl leading-tight text-[#0A2318] sm:text-3xl">
               Breathe, move, nourish, reflect, connect, refer.
             </h3>
+            <p className="mt-2 max-w-xl text-sm leading-6 text-[#0A2318]/60">
+              Do each action in real life, then tap <span className="font-semibold text-[#0A2318]">Mark done</span>.
+              Each one adds <span className="font-semibold text-[#0A2318]">+12 points</span> and earns a passport
+              stamp — collect all six to unlock provider discounts.
+            </p>
           </div>
-          <span className="rounded-full bg-[#D4C1A0]/45 px-3 py-2 text-sm font-semibold text-[#0A2318]">
-            6 steps
+          <span className="shrink-0 rounded-full bg-[#D4C1A0]/45 px-3 py-2 text-sm font-semibold text-[#0A2318]">
+            {completedSteps.size}/{path.length} done
           </span>
         </div>
 
         <div className="mt-4 grid gap-3 xl:grid-cols-2">
           {path.map((item, index) => {
             const Icon = STEP_ICONS[item.step];
+            const isDone = completedSteps.has(item.step);
             return (
               <div
                 key={item.step}
-                className="grid gap-3 rounded-[1.25rem] border border-[#0A2318]/10 bg-[#E5EAE3] p-3 transition hover:border-[#8C6246]/40 sm:grid-cols-[auto_minmax(0,1fr)] sm:items-center"
+                className={cn(
+                  "grid gap-3 rounded-[1.25rem] border p-3 transition sm:grid-cols-[auto_minmax(0,1fr)]",
+                  isDone
+                    ? "border-[#2D7A50]/40 bg-[#2D7A50]/8"
+                    : "border-[#0A2318]/10 bg-[#E5EAE3] hover:border-[#8C6246]/40",
+                )}
               >
-                <span className="grid h-10 w-10 place-items-center rounded-full bg-[#0A2318] text-[#D4C1A0]">
-                  <Icon size={18} />
+                <span className={cn(
+                  "grid h-10 w-10 place-items-center rounded-full",
+                  isDone ? "bg-[#2D7A50] text-white" : "bg-[#0A2318] text-[#D4C1A0]",
+                )}>
+                  {isDone ? <CheckCircle2 size={18} strokeWidth={2.5} /> : <Icon size={18} />}
                 </span>
                 <div className="min-w-0">
-                  <p className="text-xs font-bold uppercase text-[#8C6246]">
-                    {index + 1}. {item.step}
-                  </p>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-xs font-bold uppercase text-[#8C6246]">
+                      {index + 1}. {item.step}
+                    </p>
+                    <span
+                      className={cn(
+                        "rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                        isDone ? "bg-[#2D7A50]/15 text-[#2D7A50]" : "bg-[#0A2318]/8 text-[#0A2318]/55",
+                      )}
+                    >
+                      {item.stamp} stamp{isDone ? " ✓" : ""}
+                    </span>
+                  </div>
                   <p className="mt-1 font-semibold text-[#0A2318]">{item.title}</p>
                   <p className="mt-1 text-sm leading-6 text-[#0A2318]/64">{item.detail}</p>
                 </div>
                 <button
                   type="button"
-                  onClick={() => award(item.stamp, 12)}
-                  className="inline-flex h-9 items-center justify-center gap-2 rounded-full border border-[#0A2318] px-3 text-sm font-semibold text-[#0A2318] transition hover:bg-[#0A2318] hover:text-[#E8EDE7] sm:col-start-2"
+                  onClick={() => completeStep(item.step, item.stamp)}
+                  disabled={isDone}
+                  className={cn(
+                    "inline-flex h-10 items-center justify-center gap-2 rounded-full px-4 text-sm font-semibold transition sm:col-start-2",
+                    isDone
+                      ? "cursor-default bg-[#2D7A50]/12 text-[#2D7A50]"
+                      : "bg-[#0A2318] text-[#E8EDE7] hover:bg-[#1A3A2A]",
+                  )}
                 >
-                  <BadgeCheck size={16} />
-                  Stamp {item.stamp}
+                  {isDone ? (
+                    <><CheckCircle2 size={16} /> Done · +12 pts earned</>
+                  ) : (
+                    <><BadgeCheck size={16} /> Mark done · +12 pts</>
+                  )}
                 </button>
               </div>
             );

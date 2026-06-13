@@ -13,6 +13,7 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const ROLES = new Set(["Individual", "Provider", "Employer"]);
+const GENDERS = new Set(["Male", "Female", "Non-binary", "Prefer not to say"]);
 
 export async function POST(request: Request) {
   try {
@@ -22,6 +23,10 @@ export async function POST(request: Request) {
     const role = ROLES.has(asString(body.role)) ? asString(body.role) : "Individual";
     const organization = asString(body.organization) || null;
     const mode = asString(body.mode) === "signup" ? "signup" : "login";
+    const genderRaw = asString(body.gender);
+    const gender = GENDERS.has(genderRaw) ? genderRaw : undefined;
+    const dobRaw = asString(body.dateOfBirth);
+    const dateOfBirth = dobRaw ? new Date(dobRaw) : undefined;
 
     if (!email || !email.includes("@")) {
       return NextResponse.json({ error: "A valid email is required." }, { status: 400 });
@@ -34,12 +39,16 @@ export async function POST(request: Request) {
         name,
         role,
         organization,
+        ...(gender !== undefined ? { gender } : {}),
+        ...(dateOfBirth !== undefined ? { dateOfBirth } : {}),
       },
       update:
         mode === "signup"
           ? {
               ...(name ? { name } : {}),
               ...(organization ? { organization } : {}),
+              ...(gender ? { gender } : {}),
+              ...(dateOfBirth ? { dateOfBirth } : {}),
               role,
             }
           : {},

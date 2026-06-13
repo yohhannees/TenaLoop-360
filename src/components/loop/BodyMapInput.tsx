@@ -38,7 +38,7 @@ export default function BodyMapInput({ selected, onToggle }: Props) {
         Tap to mark discomfort
       </p>
 
-      <div className="flex justify-center rounded-[1.25rem] border border-[#0A2318]/10 bg-[#E5EAE3] px-4 py-3">
+      <div className="flex justify-center rounded-lg border border-[#0A2318]/10 bg-[#F7F9F5] px-4 py-3">
         <svg
           viewBox="0 0 120 300"
           style={{ width: 108, height: 270 }}
@@ -168,12 +168,12 @@ export default function BodyMapInput({ selected, onToggle }: Props) {
               type="button"
               onClick={() => onToggle(area)}
               className={cn(
-                "inline-flex items-center gap-1 rounded-full px-2.5 py-0.5",
+                "inline-flex items-center gap-1 rounded-md px-2.5 py-0.5",
                 "bg-[#8C6246] text-[10px] font-bold uppercase tracking-wide text-[#E8EDE7]",
                 "transition hover:bg-[#724F38]",
               )}
             >
-              {area} ×
+              {area} x
             </button>
           ))
         )}

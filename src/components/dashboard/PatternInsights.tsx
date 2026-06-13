@@ -24,13 +24,13 @@ export default function PatternInsights() {
   const insights = getPatternInsights(trend, analytics ?? {});
 
   return (
-    <section className="rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-5 shadow-sm shadow-[#0A2318]/5">
+    <section className="h-full rounded-lg border border-[#0A2318]/10 bg-white p-5 shadow-sm shadow-[#0A2318]/5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-bold uppercase text-[#8C6246]">Pattern analysis</p>
-          <h2 className="mt-1 font-serif text-3xl text-[#0A2318]">What the data shows</h2>
+          <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8C6246]">Pattern analysis</p>
+          <h2 className="mt-1 font-serif text-2xl text-[#0A2318]">What the data shows</h2>
         </div>
-        <div className="grid h-11 w-11 place-items-center rounded-full bg-[#D4C1A0]/45 text-[#0A2318]">
+        <div className="grid h-10 w-10 place-items-center rounded-lg bg-[#E8F3F7] text-[#2C7DA0]">
           <Brain size={20} />
         </div>
       </div>
@@ -39,9 +39,9 @@ export default function PatternInsights() {
         {insights.map((insight, index) => (
           <div
             key={insight}
-            className="grid grid-cols-[auto_1fr] gap-3 rounded-[1.25rem] border border-[#0A2318]/10 bg-[#E5EAE3] p-3 text-sm leading-6 text-[#0A2318]/66"
+            className="grid grid-cols-[auto_1fr] gap-3 rounded-lg border border-[#0A2318]/10 bg-[#F7F9F5] p-3 text-sm leading-6 text-[#0A2318]/66"
           >
-            <span className="grid h-6 w-6 place-items-center rounded-full bg-[#0A2318] text-xs font-semibold text-[#E8EDE7]">
+            <span className="grid h-6 w-6 place-items-center rounded-md bg-[#0A2318] text-xs font-semibold text-[#E8EDE7]">
               {index + 1}
             </span>
             <span>{insight}</span>
@@ -49,7 +49,7 @@ export default function PatternInsights() {
         ))}
       </div>
 
-      <div className="mt-4 rounded-[1.25rem] border border-[#8C6246]/18 bg-[#D4C1A0]/28 p-3 text-sm leading-6 text-[#0A2318]/72">
+      <div className="mt-4 rounded-lg border border-[#EFB84C]/25 bg-[#FFF6DD] p-3 text-sm leading-6 text-[#0A2318]/72">
         {analytics
           ? "Insight model: stress x sleep x food x movement patterns from your real check-in history."
           : "Insight model: stress x sleep x food x movement patterns over 7 days. More check-ins improve accuracy."}

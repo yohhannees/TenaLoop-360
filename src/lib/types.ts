@@ -93,6 +93,22 @@ export type AuthUser = {
   name: string | null;
   role: string;
   organization: string | null;
+  gender: string | null;
+  dateOfBirth: string | null; // ISO string
+};
+
+export type UserHealthProfile = {
+  weightKg: number | null;
+  heightCm: number | null;
+  bloodType: string | null;
+  diabetesType: string | null;
+  allergies: string[];
+  conditions: string[];
+  medications: string | null;
+  bloodSugarFasting: number | null;
+  bloodPressure: string | null;
+  emergencyContact: string | null;
+  notes: string | null;
 };
 
 export type MealLogEntry = {
@@ -119,6 +135,7 @@ export type BookingEntry = {
 
 export type WellnessBackendState = {
   user: AuthUser;
+  healthProfile: UserHealthProfile | null;
   checkIn: CheckIn;
   stamps: Stamp[];
   points: number;

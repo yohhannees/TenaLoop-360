@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useRef, useState, ReactNode } from "react";
-import { AuthUser, CheckIn, ChatMessage, Language, Stamp, WellnessBackendState } from "@/lib/types";
+import { AuthUser, CheckIn, ChatMessage, Language, Stamp, UserHealthProfile, WellnessBackendState } from "@/lib/types";
 import { calculateScore, buildPlan, getScoreColor, getScoreLabel } from "@/lib/score";
 import { getFoodSignal } from "@/lib/foods";
 import { DEFAULT_CHECK_IN, DEFAULT_STAMPS, INITIAL_MESSAGES } from "@/lib/defaults";
@@ -16,6 +16,7 @@ function normalizeCheckIn(checkIn: CheckIn): CheckIn {
 
 type WellnessContextValue = {
   user: AuthUser | null;
+  healthProfile: UserHealthProfile | null;
   isBackendReady: boolean;
   // check-in
   checkIn: CheckIn;
@@ -51,6 +52,8 @@ type WellnessContextValue = {
   // language
   language: Language;
   setLanguage: (lang: Language) => void;
+  // profile
+  refreshProfile: () => Promise<void>;
 };
 
 type BookingDetails = {
@@ -79,6 +82,7 @@ const WellnessContext = createContext<WellnessContextValue | null>(null);
 
 export function WellnessProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [healthProfile, setHealthProfile] = useState<UserHealthProfile | null>(null);
   const [isBackendReady, setIsBackendReady] = useState(false);
   const [checkIn, setCheckIn] = useState<CheckIn>(DEFAULT_CHECK_IN);
   const [stamps, setStamps] = useState<Stamp[]>(DEFAULT_STAMPS);
@@ -128,6 +132,7 @@ export function WellnessProvider({ children }: { children: ReactNode }) {
 
   function applyBackendState(state: WellnessBackendState) {
     setUser(state.user);
+    setHealthProfile(state.healthProfile ?? null);
     setCheckIn(normalizeCheckIn(state.checkIn));
     setStamps(state.stamps);
     setPoints(state.points);
@@ -136,6 +141,12 @@ export function WellnessProvider({ children }: { children: ReactNode }) {
     setBookedProviders(state.bookedProviders);
     setJoinedCircles(state.joinedCircles);
     setLanguage(state.language);
+  }
+
+  async function refreshProfile() {
+    const res = await fetch("/api/me").catch(() => null);
+    const data = (await res?.json().catch(() => null)) as { state?: WellnessBackendState } | null;
+    if (data?.state) applyBackendState(data.state);
   }
 
   function updateCheckIn<K extends keyof CheckIn>(key: K, value: CheckIn[K]) {
@@ -280,6 +291,7 @@ export function WellnessProvider({ children }: { children: ReactNode }) {
       value={{
         checkIn: normalizedCheckIn,
         user,
+        healthProfile,
         isBackendReady,
         updateCheckIn,
         saveCheckIn,
@@ -306,6 +318,7 @@ export function WellnessProvider({ children }: { children: ReactNode }) {
         logMovement,
         language,
         setLanguage: setLanguageAndPersist,
+        refreshProfile,
       }}
     >
       {children}

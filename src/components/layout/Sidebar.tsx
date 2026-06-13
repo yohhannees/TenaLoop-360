@@ -13,9 +13,11 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  Plug,
   RefreshCw,
   Sparkles,
   Store,
+  User,
   Users,
   Utensils,
   X,
@@ -30,6 +32,7 @@ const NAV = [
   { href: "/move",      label: "TenaMove",    sub: "Movement",   Icon: Dumbbell },
   { href: "/circles",   label: "TenaCircle",  sub: "Community",  Icon: Users },
   { href: "/market",    label: "TenaMarket",  sub: "Booking",    Icon: Store },
+  { href: "/integrations", label: "Integrations", sub: "Connect apps", Icon: Plug },
   { href: "/dashboard", label: "Dashboard",   sub: "Analytics",  Icon: LayoutDashboard },
 ] as const;
 
@@ -127,31 +130,31 @@ export default function Sidebar() {
       {/* ── Sidebar ──────────────────────────────────────────────────── */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex flex-col bg-[#0A2318] transition-[width,transform] duration-300 ease-in-out",
+          "fixed inset-y-0 left-0 z-50 flex min-h-0 flex-col border-r border-white/8 bg-[#071C13] shadow-2xl shadow-[#0A2318]/18 transition-[width,transform] duration-300 ease-in-out",
           // desktop
           "lg:static lg:translate-x-0",
-          collapsed ? "lg:w-[72px]" : "lg:w-64",
+          collapsed ? "lg:w-[76px]" : "lg:w-[280px]",
           // mobile
-          mobileOpen ? "w-72 translate-x-0" : "w-72 -translate-x-full lg:translate-x-0",
+          mobileOpen ? "w-[300px] translate-x-0" : "w-[300px] -translate-x-full lg:translate-x-0",
         )}
       >
         {/* Header */}
         <div
           className={cn(
-            "flex h-16 shrink-0 items-center border-b border-white/8",
-            collapsed ? "justify-center px-0" : "justify-between px-4",
+            "flex shrink-0 items-center border-b border-white/8",
+            collapsed ? "h-16 justify-center px-0" : "h-20 justify-between gap-3 px-4",
           )}
         >
           {!collapsed && (
-            <Link href="/" onClick={close} className="flex items-center gap-3">
-              <span className="grid h-8 w-8 place-items-center rounded-full bg-[#D4C1A0]/15">
-                <Activity size={16} strokeWidth={1.5} className="text-[#D4C1A0]" />
+            <Link href="/" onClick={close} className="flex min-w-0 flex-1 items-center gap-3">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-[#D4C1A0]/18 bg-[#102A1D] shadow-sm shadow-black/10">
+                <Activity size={20} strokeWidth={1.6} className="text-[#D4C1A0]" />
               </span>
-              <div>
-                <p className="font-serif text-sm font-bold leading-tight text-[#E8EDE7]">
+              <div className="min-w-0">
+                <p className="truncate font-serif text-xl font-bold leading-tight text-[#E8EDE7]">
                   TenaLoop 360
                 </p>
-                <p className="text-[10px] text-[#E8EDE7]/68">Wellness passport</p>
+                <p className="mt-0.5 truncate text-xs text-[#D4C1A0]/82">Wellness passport</p>
               </div>
             </Link>
           )}
@@ -160,7 +163,7 @@ export default function Sidebar() {
           <button
             onClick={toggleCollapse}
             className={cn(
-              "hidden h-7 w-7 items-center justify-center rounded-lg border border-white/10 text-[#E8EDE7]/72 transition hover:border-white/25 hover:text-white lg:flex",
+              "hidden h-8 w-8 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-[#E8EDE7]/72 transition hover:border-white/25 hover:bg-white/10 hover:text-white lg:flex",
               collapsed && "mx-auto",
             )}
           >
@@ -180,7 +183,7 @@ export default function Sidebar() {
         <div
           className={cn(
             "shrink-0 border-b border-white/8",
-            collapsed ? "px-0 py-4" : "px-4 py-4",
+            collapsed ? "px-0 py-3" : "px-3 py-3",
           )}
         >
           {collapsed ? (
@@ -210,41 +213,56 @@ export default function Sidebar() {
               </div>
             </div>
           ) : (
-            <div className="grid gap-3">
-              {/* Label row */}
-              <div className="flex items-center justify-between">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-[#E8EDE7]/65">
-                  Today
-                </p>
+            <div className="overflow-hidden rounded-[1.35rem] border border-white/10 bg-[#0B2418] p-3 shadow-sm shadow-black/10">
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#D4C1A0]/72">
+                    Today
+                  </p>
+                  <p className="mt-0.5 truncate text-xs text-[#E8EDE7]/64">
+                    {user?.name ? `Hi, ${user.name.split(" ")[0]}` : "Your wellness state"}
+                  </p>
+                </div>
                 <span
-                  className="rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
-                  style={{ backgroundColor: color + "20", color }}
+                  className="shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide"
+                  style={{ backgroundColor: color + "18", borderColor: color + "2F", color }}
                 >
                   {label}
                 </span>
               </div>
 
-              {/* Ring + points row */}
-              <div className="flex items-center gap-3">
+              <div className="mt-3 grid grid-cols-[68px_minmax(0,1fr)] items-center gap-3">
                 <div
-                  className="grid h-14 w-14 shrink-0 place-items-center rounded-full"
+                  className="grid h-[68px] w-[68px] shrink-0 place-items-center rounded-full shadow-inner shadow-black/20"
                   style={{
                     background: `conic-gradient(${color} ${score * 3.6}deg, #1A3A2A 0deg)`,
                   }}
                 >
-                  <div className="grid h-9 w-9 place-items-center rounded-full bg-[#0A2318]">
-                    <span className="text-sm font-bold" style={{ color }}>
+                  <div className="grid h-[50px] w-[50px] place-items-center rounded-full bg-[#071C13]">
+                    <span className="font-serif text-2xl font-bold leading-none" style={{ color }}>
                       {score}
                     </span>
                   </div>
                 </div>
 
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-[#E8EDE7]/68">Points</span>
-                    <span className="font-semibold text-[#D4C1A0]">{points}</span>
+                <div className="min-w-0">
+                  <div className="grid gap-1.5">
+                    <div className="flex items-center justify-between rounded-xl border border-white/8 bg-white/5 px-2.5 py-1.5">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-[#E8EDE7]/45">
+                        Points
+                      </p>
+                      <p className="text-sm font-bold leading-none text-[#D4C1A0]">{points}</p>
+                    </div>
+                    <div className="flex items-center justify-between rounded-xl border border-white/8 bg-white/5 px-2.5 py-1.5">
+                      <p className="text-[10px] font-bold uppercase tracking-wide text-[#E8EDE7]/45">
+                        Stamps
+                      </p>
+                      <p className="text-sm font-bold leading-none text-[#E8EDE7]">
+                        {stamps.length}/6
+                      </p>
+                    </div>
                   </div>
-                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white/8">
+                  <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/8">
                     <div
                       className="h-full rounded-full transition-all duration-700"
                       style={{
@@ -253,22 +271,36 @@ export default function Sidebar() {
                       }}
                     />
                   </div>
-                  <div className="mt-2 flex items-center justify-between text-[10px] text-[#E8EDE7]/65">
-                    <span>Passport</span>
-                    <span>{stamps.length}/6 stamps</span>
-                  </div>
-                  <div className="mt-1 flex gap-1">
-                    {ALL_STAMPS.map((s) => (
+                </div>
+              </div>
+
+              <div className="mt-3 grid gap-1.5">
+                <div className="flex items-center justify-between text-[10px] text-[#E8EDE7]/58">
+                  <span>Passport progress</span>
+                  <Link
+                    href="/profile"
+                    onClick={close}
+                    className="inline-flex items-center gap-1 font-semibold text-[#D4C1A0]/90 transition hover:text-[#D4C1A0]"
+                  >
+                    <User size={12} />
+                    Profile
+                  </Link>
+                </div>
+                <div className="grid grid-cols-6 gap-1.5">
+                  {ALL_STAMPS.map((s) => {
+                    const earned = stamps.includes(s);
+                    return (
                       <span
                         key={s}
                         title={s}
-                        className="h-2 flex-1 rounded-full transition"
+                        className="h-2 rounded-full transition"
                         style={{
-                          backgroundColor: stamps.includes(s) ? color : "#1A3A2A",
+                          backgroundColor: earned ? color : "#183527",
+                          opacity: earned ? 1 : 0.78,
                         }}
                       />
-                    ))}
-                  </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -276,13 +308,13 @@ export default function Sidebar() {
         </div>
 
         {/* Navigation */}
-        <nav className="no-scrollbar flex-1 overflow-y-auto py-3">
+        <nav className="no-scrollbar min-h-0 flex-1 overflow-y-auto py-3">
           {!collapsed && (
-            <p className="mb-2 px-4 text-[10px] font-bold uppercase tracking-wider text-[#E8EDE7]/60">
+            <p className="mb-1.5 px-4 text-[10px] font-bold uppercase tracking-[0.18em] text-[#E8EDE7]/45">
               Navigate
             </p>
           )}
-          <div className={cn("grid gap-0.5", collapsed ? "px-2" : "px-2")}>
+          <div className={cn("grid gap-0.5", collapsed ? "px-2" : "px-2.5")}>
             {NAV.map(({ href, label: navLabel, sub, Icon }) => {
               const active = pathname === href;
               return (
@@ -292,10 +324,10 @@ export default function Sidebar() {
                   onClick={close}
                   title={collapsed ? navLabel : undefined}
                   className={cn(
-                    "group flex items-center gap-3 rounded-xl px-2 py-2.5 transition-all duration-150",
+                    "group flex items-center gap-3 rounded-xl px-2.5 py-2 transition-all duration-150",
                     active
-                      ? "bg-white/10 text-[#E8EDE7]"
-                      : "text-[#E8EDE7]/82 hover:bg-white/6 hover:text-white",
+                      ? "bg-[#102A1D] text-[#E8EDE7] shadow-sm shadow-black/10"
+                      : "text-[#E8EDE7]/76 hover:bg-white/6 hover:text-white",
                     collapsed && "justify-center",
                   )}
                 >
@@ -336,7 +368,7 @@ export default function Sidebar() {
         {/* Footer */}
         <div
           className={cn(
-            "shrink-0 grid gap-1 border-t border-white/8 py-3",
+            "shrink-0 grid gap-2 border-t border-white/8 py-2.5",
             collapsed ? "px-2" : "px-3",
           )}
         >
@@ -365,33 +397,28 @@ export default function Sidebar() {
               <Link
                 href="/signup"
                 onClick={close}
-                className="flex h-10 items-center justify-center gap-2 rounded-xl bg-[#8C6246] text-sm font-semibold text-[#E8EDE7] transition hover:bg-[#724F38]"
+                  className="flex h-10 items-center justify-center gap-2 rounded-xl bg-[#8C6246] text-sm font-semibold text-[#E8EDE7] transition hover:bg-[#724F38]"
               >
                 <Sparkles size={15} />
                 Upgrade to Premium
               </Link>
-              <div className="flex items-center justify-between px-1 pt-1">
+              <div className="grid grid-cols-2 gap-2">
                 <button
                   onClick={() =>
                     setLanguage(language === "English" ? "Amharic-ready" : "English")
                   }
-                  className="flex items-center gap-1.5 text-[10px] text-[#E8EDE7]/65 transition hover:text-[#E8EDE7]/90"
+                  className="inline-flex h-9 min-w-0 items-center justify-center gap-1.5 rounded-xl border border-white/8 bg-white/5 px-2 text-xs font-semibold text-[#E8EDE7]/70 transition hover:text-[#E8EDE7]/90"
                 >
                   <Globe2 size={12} />
-                  {language}
+                  <span className="truncate">{language === "Amharic-ready" ? "Amharic" : language}</span>
                 </button>
-                {user?.email && (
-                  <span className="max-w-28 truncate text-[10px] text-[#E8EDE7]/50">
-                    {user.email}
-                  </span>
-                )}
                 <button
                   type="button"
                   onClick={signOut}
-                  className="flex items-center gap-1.5 text-[10px] text-[#E8EDE7]/65 transition hover:text-[#E8EDE7]/90"
+                  className="inline-flex h-9 min-w-0 items-center justify-center gap-1.5 rounded-xl border border-white/8 bg-white/5 px-2 text-xs font-semibold text-[#E8EDE7]/70 transition hover:text-[#E8EDE7]/90"
                 >
                   <LogOut size={12} />
-                  Sign out
+                  <span className="truncate">Sign out</span>
                 </button>
               </div>
             </>

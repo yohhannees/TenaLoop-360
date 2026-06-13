@@ -22,6 +22,9 @@ function createTransport() {
     host: process.env.SMTP_HOST,
     port,
     secure: process.env.SMTP_SECURE === "true" || port === 465,
+    connectionTimeout: Number(process.env.SMTP_CONNECTION_TIMEOUT_MS || 8000),
+    greetingTimeout: Number(process.env.SMTP_GREETING_TIMEOUT_MS || 8000),
+    socketTimeout: Number(process.env.SMTP_SOCKET_TIMEOUT_MS || 12000),
     auth:
       process.env.SMTP_USER && process.env.SMTP_PASS
         ? {
@@ -60,6 +63,9 @@ export async function sendAuthCodeEmail({
     from: process.env.SMTP_FROM || "TenaLoop 360 <no-reply@tenaloop.local>",
     subject,
     text,
+  }).catch((error: unknown) => {
+    const message = error instanceof Error ? error.message : "SMTP delivery failed.";
+    throw new Error(`Auth email could not be sent through SMTP. ${message}`);
   });
 
   if (!smtpConfigured()) {

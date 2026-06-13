@@ -31,7 +31,7 @@ export default function BusinessMetrics() {
   }, [score, bookedProviders.length, joinedCircles.length]);
 
   return (
-    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-5 md:grid-cols-2">
+    <div className="grid min-w-0 grid-cols-[minmax(0,1fr)] gap-4 md:grid-cols-2">
       <BusinessCard
         label="Corporate wellness"
         title="Team wellness score"

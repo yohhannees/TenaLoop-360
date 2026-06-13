@@ -1,147 +1,224 @@
 "use client";
 
-import { Bot, Send, Sparkles } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  Activity,
+  AlertCircle,
+  Bot,
+  BrainCircuit,
+  ChevronRight,
+  Moon,
+  Send,
+  ShieldCheck,
+  Zap,
+  type LucideIcon,
+} from "lucide-react";
 import { useWellness } from "@/context/WellnessContext";
 import { useCoachChat } from "@/hooks/useCoachChat";
 import { cn } from "@/lib/utils";
 
+function scoreTone(score: number) {
+  if (score >= 75) return { text: "#276442", bg: "#EAF4EE", border: "#4C956C44" };
+  if (score >= 55) return { text: "#8C6246", bg: "#FFF6DD", border: "#EFB84C55" };
+  return { text: "#B23A24", bg: "#FCECE7", border: "#D65A3144" };
+}
+
 export default function ChatWindow() {
-  const { messages, score, scoreLabel, checkIn, foodSignal } = useWellness();
-  const { input, setInput, handleSubmit, sendMessage, quickPrompts, isSending, error } =
-    useCoachChat();
+  const { messages, score, scoreLabel, checkIn } = useWellness();
+  const { input, setInput, handleSubmit, sendMessage, quickPrompts, isSending, error } = useCoachChat();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const tone = scoreTone(score);
+  const starterPrompts = quickPrompts.slice(0, 4);
+
+  useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [messages, isSending]);
 
   return (
-    <section className="min-w-0 overflow-hidden rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-4 shadow-sm shadow-[#0A2318]/5 sm:p-5">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase text-[#8C6246]">
-            <Bot size={16} />
-            TenaBot
+    <section className="grid min-h-[720px] min-w-0 overflow-hidden rounded-lg border border-[#0A2318]/10 bg-white shadow-sm shadow-[#0A2318]/5 xl:h-[calc(100vh-150px)] xl:min-h-[680px]">
+      <div className="grid min-h-0 min-w-0 grid-rows-[auto_minmax(0,1fr)_auto]">
+        <header className="border-b border-[#0A2318]/10 bg-white p-5">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex min-w-0 items-center gap-3">
+              <span className="relative grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-[#0A2318] text-[#EFB84C]">
+                <Bot size={24} />
+                <span className="absolute -bottom-1 -right-1 h-4 w-4 rounded-full border-2 border-white bg-[#4C956C]" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8C6246]">TenaBot</p>
+                <h2 className="mt-1 font-serif text-2xl leading-none text-[#0A2318]">Calm coaching session</h2>
+              </div>
+            </div>
+
+            <div className="grid gap-2 sm:grid-cols-4 lg:min-w-[430px]">
+              <SignalChip icon={BrainCircuit} label="Score" value={`${score}`} tone={tone} />
+              <SignalChip icon={Zap} label="Stress" value={`${checkIn.stress}/10`} />
+              <SignalChip icon={Moon} label="Sleep" value={`${checkIn.sleep}h`} />
+              <SignalChip icon={Activity} label="Move" value={`${checkIn.movement}m`} />
+            </div>
           </div>
-          <h2 className="mt-1 font-serif text-3xl text-[#0A2318]">Wellness support coach</h2>
-          <p className="mt-2 max-w-xl text-sm leading-6 text-[#0A2318]/62">
-            Ask for a reset plan, food swap, sleep routine, movement break, or support path.
-          </p>
+
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span
+              className="rounded-lg border px-3 py-1.5 text-xs font-semibold"
+              style={{ color: tone.text, backgroundColor: tone.bg, borderColor: tone.border }}
+            >
+              {scoreLabel} zone
+            </span>
+            <span className="inline-flex items-center gap-2 rounded-lg border border-[#0A2318]/10 bg-[#F7F9F5] px-3 py-1.5 text-xs font-semibold text-[#0A2318]/62">
+              <ShieldCheck size={14} className="text-[#4C956C]" />
+              Wellness guidance, not emergency care
+            </span>
+          </div>
+        </header>
+
+        <div ref={scrollRef} className="no-scrollbar min-h-0 min-w-0 overflow-x-hidden overflow-y-auto bg-[#F7F9F5] px-4 py-5 sm:px-5">
+          <div className="grid w-full min-w-0 justify-items-stretch gap-4">
+            <AnimatePresence initial={false}>
+              {messages.map((msg, index) => (
+                <motion.div
+                  key={`${msg.role}-${index}-${msg.text.slice(0, 16)}`}
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className={cn(
+                    "w-full min-w-0",
+                    msg.role === "assistant"
+                      ? "grid grid-cols-[auto_minmax(0,1fr)] gap-3"
+                      : "flex justify-end",
+                  )}
+                >
+                  {msg.role === "assistant" ? (
+                    <span className="mt-1 grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-[#0A2318] text-[#EFB84C]">
+                      <Bot size={16} />
+                    </span>
+                  ) : null}
+
+                  <div
+                    className={cn(
+                      "min-w-0 max-w-xl break-words rounded-lg px-4 py-3 text-sm leading-6 shadow-sm",
+                      msg.role === "assistant"
+                        ? "border border-[#0A2318]/10 bg-white text-[#0A2318]"
+                        : "bg-[#0A2318] text-[#E8EDE7]",
+                    )}
+                  >
+                    {msg.text.split("\n").map((line, lineIndex) => (
+                      <p key={`${index}-${lineIndex}`} className={lineIndex > 0 ? "mt-3" : ""}>
+                        {line}
+                      </p>
+                    ))}
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+
+            {messages.length <= 1 ? (
+              <div className="grid min-w-0 gap-3 pt-2">
+                {starterPrompts.map((prompt) => (
+                  <button
+                    key={prompt}
+                    type="button"
+                    onClick={() => sendMessage(prompt)}
+                    className="group flex min-h-20 min-w-0 items-start justify-between gap-3 rounded-lg border border-[#0A2318]/10 bg-white p-4 text-left text-sm font-semibold leading-5 text-[#0A2318] shadow-sm shadow-[#0A2318]/5 transition hover:-translate-y-0.5 hover:border-[#0A2318]/24 hover:shadow-md"
+                  >
+                    <span className="min-w-0">{prompt}</span>
+                    <ChevronRight size={16} className="mt-0.5 shrink-0 text-[#8C6246] transition group-hover:translate-x-0.5" />
+                  </button>
+                ))}
+              </div>
+            ) : null}
+
+            {isSending ? (
+              <div className="flex items-center gap-3 rounded-lg border border-[#0A2318]/10 bg-white px-4 py-3 text-sm text-[#0A2318]/62 shadow-sm">
+                <span className="flex gap-1">
+                  {[0, 1, 2].map((dot) => (
+                    <motion.span
+                      key={dot}
+                      className="h-1.5 w-1.5 rounded-full bg-[#8C6246]"
+                      animate={{ opacity: [0.25, 1, 0.25] }}
+                      transition={{ duration: 1, repeat: Infinity, delay: dot * 0.18 }}
+                    />
+                  ))}
+                </span>
+                TenaBot is thinking
+              </div>
+            ) : null}
+          </div>
         </div>
 
-        <div className="grid w-full min-w-0 grid-cols-3 gap-2 text-center sm:w-auto sm:min-w-64">
-          <SignalPill label="Score" value={`${score}`} tone={score < 55 ? "warn" : score < 70 ? "mid" : "good"} />
-          <SignalPill label="Zone" value={scoreLabel} tone={score < 55 ? "warn" : "mid"} />
-          <SignalPill label="Food" value={foodSignal.risk} tone={foodSignal.risk === "High" ? "warn" : foodSignal.risk === "Medium" ? "mid" : "good"} />
-        </div>
-      </div>
+        <footer className="border-t border-[#0A2318]/10 bg-white p-4 sm:p-5">
+          {error ? (
+            <div className="mb-3 flex items-start gap-2 rounded-lg border border-[#D65A31]/20 bg-[#FCECE7] px-3 py-2 text-xs leading-5 text-[#8A2F1E]">
+              <AlertCircle size={14} className="mt-0.5 shrink-0" />
+              {error}
+            </div>
+          ) : null}
 
-      <div className="mt-5 grid grid-cols-2 gap-2 rounded-[1.5rem] border border-[#0A2318]/10 bg-[#E5EAE3] p-3 text-sm sm:grid-cols-3 xl:grid-cols-6">
-        <MiniSignal label="Stress" value={`${checkIn.stress}/10`} />
-        <MiniSignal label="Sleep" value={`${checkIn.sleep}h`} />
-        <MiniSignal label="Movement" value={`${checkIn.movement}m`} />
-        <MiniSignal label="Support" value={checkIn.support} />
-        <MiniSignal
-          label="Body"
-          value={
-            checkIn.painAreas.length
-              ? `${checkIn.painAreas.length} area${checkIn.painAreas.length > 1 ? "s" : ""}`
-              : "Clear"
-          }
-        />
-        <MiniSignal
-          label="Women"
-          value={checkIn.womenWellness ? checkIn.cycleContext : "Off"}
-        />
-      </div>
-
-      <div className="mt-5 flex max-w-full min-w-0 gap-2 overflow-x-auto pb-1 no-scrollbar">
-        {quickPrompts.map((prompt) => (
-          <button
-            key={prompt}
-            type="button"
-            disabled={isSending}
-            onClick={() => void sendMessage(prompt)}
-            className="inline-flex h-9 shrink-0 items-center gap-2 rounded-full border border-[#0A2318]/10 bg-[#E5EAE3] px-3.5 text-xs font-semibold text-[#0A2318]/68 transition hover:border-[#8C6246] hover:text-[#0A2318] disabled:cursor-not-allowed disabled:opacity-45"
-          >
-            <Sparkles size={13} />
-            {prompt}
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-4 grid max-h-[520px] gap-3 overflow-auto pr-1">
-        {messages.map((msg, i) => (
-          <div
-            key={`${msg.role}-${i}`}
-            className={cn(
-              "whitespace-pre-line text-sm leading-6",
-              msg.role === "assistant"
-                ? "max-w-[92%] justify-self-start rounded-[1.5rem] rounded-bl-sm bg-[#E5EAE3] px-4 py-3 text-[#0A2318]/76"
-                : "max-w-[92%] justify-self-end rounded-[1.5rem] rounded-br-sm bg-[#0A2318] px-4 py-3 text-[#E8EDE7]",
-            )}
-          >
-            {msg.text}
+          <div className="no-scrollbar mb-3 flex gap-2 overflow-x-auto pb-1">
+            {quickPrompts.map((prompt) => (
+              <button
+                key={prompt}
+                type="button"
+                onClick={() => sendMessage(prompt)}
+                disabled={isSending}
+                className="whitespace-nowrap rounded-lg border border-[#0A2318]/10 bg-[#F7F9F5] px-3 py-2 text-xs font-semibold text-[#0A2318]/68 transition hover:border-[#0A2318]/24 hover:bg-[#EAF4EE] disabled:opacity-50"
+              >
+                {prompt}
+              </button>
+            ))}
           </div>
-        ))}
-        {isSending && (
-          <div className="max-w-[92%] justify-self-start rounded-[1.5rem] rounded-bl-sm bg-[#E5EAE3] px-4 py-3 text-sm leading-6 text-[#0A2318]/58">
-            TenaBot is reading your score, body signals, and support path...
-          </div>
-        )}
+
+          <form onSubmit={handleSubmit} className="flex items-end gap-2 rounded-lg border border-[#0A2318]/12 bg-[#F7F9F5] p-2 shadow-inner shadow-[#0A2318]/5">
+            <textarea
+              value={input}
+              onChange={(event) => setInput(event.target.value)}
+              placeholder="Tell TenaBot what is happening..."
+              rows={1}
+              className="max-h-28 min-h-11 flex-1 resize-none bg-transparent px-3 py-2.5 text-sm leading-6 text-[#0A2318] outline-none placeholder:text-[#0A2318]/40"
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  event.currentTarget.form?.requestSubmit();
+                }
+              }}
+            />
+            <button
+              type="submit"
+              disabled={!input.trim() || isSending}
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-lg bg-[#0A2318] text-[#E8EDE7] transition hover:bg-[#173829] active:scale-95 disabled:opacity-40"
+              aria-label="Send message"
+            >
+              <Send size={17} />
+            </button>
+          </form>
+        </footer>
       </div>
-
-      {error && (
-        <p className="mt-3 rounded-2xl border border-[#8C6246]/18 bg-[#D4C1A0]/24 px-4 py-2 text-xs leading-5 text-[#0A2318]/60">
-          {error}
-        </p>
-      )}
-
-      <form onSubmit={handleSubmit} className="mt-5 grid min-w-0 gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
-        <input
-          value={input}
-          disabled={isSending}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Tell TenaBot what is happening today..."
-          className="h-12 min-w-0 rounded-full border border-[#0A2318]/12 bg-[#E5EAE3] px-4 text-sm text-[#0A2318] outline-none placeholder:text-[#0A2318]/36 focus:border-[#8C6246] focus:bg-[#F3F5F1] disabled:cursor-not-allowed disabled:opacity-60"
-        />
-        <button
-          type="submit"
-          disabled={isSending || !input.trim()}
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[#0A2318] px-6 text-sm font-semibold text-[#E8EDE7] shadow-sm shadow-[#0A2318]/10 transition hover:bg-[#1A3A2A] disabled:cursor-not-allowed disabled:opacity-45"
-        >
-          <Send size={16} />
-          {isSending ? "Thinking" : "Send"}
-        </button>
-      </form>
     </section>
   );
 }
 
-function SignalPill({
+function SignalChip({
+  icon: Icon,
   label,
   value,
   tone,
 }: {
+  icon: LucideIcon;
   label: string;
   value: string;
-  tone: "good" | "mid" | "warn";
+  tone?: { text: string; bg: string; border: string };
 }) {
   return (
     <div
-      className={cn(
-        "min-w-0 rounded-2xl px-2 py-2 sm:px-3",
-        tone === "good" && "bg-[#0A2318] text-[#E8EDE7]",
-        tone === "mid" && "bg-[#D4C1A0]/45 text-[#0A2318]",
-        tone === "warn" && "bg-[#8C6246] text-[#E8EDE7]",
-      )}
+      className="min-w-0 rounded-lg border bg-[#F7F9F5] px-3 py-2"
+      style={tone ? { backgroundColor: tone.bg, borderColor: tone.border } : undefined}
     >
-      <p className="text-[10px] font-bold uppercase opacity-70">{label}</p>
-      <p className="truncate text-xs font-semibold sm:text-sm">{value}</p>
-    </div>
-  );
-}
-
-function MiniSignal({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0">
-      <p className="text-[10px] font-bold uppercase text-[#0A2318]/40">{label}</p>
-      <p className="mt-0.5 truncate font-semibold text-[#0A2318]">{value}</p>
+      <div className="flex items-center gap-1.5 text-[#8C6246]" style={tone ? { color: tone.text } : undefined}>
+        <Icon size={13} />
+        <span className="text-[10px] font-bold uppercase tracking-[0.12em]">{label}</span>
+      </div>
+      <p className="mt-1 truncate text-sm font-bold text-[#0A2318]">{value}</p>
     </div>
   );
 }

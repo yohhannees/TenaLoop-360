@@ -2,25 +2,26 @@
 
 import { Brain, Dumbbell, HeartPulse, Search, Sparkles, Utensils } from "lucide-react";
 import { useWellness } from "@/context/WellnessContext";
-import { extendedProviders } from "@/lib/market-providers";
+import { ExtendedProvider } from "@/lib/market-providers";
 import { Provider } from "@/lib/types";
 import { MarketCategory } from "@/hooks/useMarketFilter";
 import { cn } from "@/lib/utils";
 
 const CATEGORIES = [
-  { id: "All", label: "All services", Icon: Sparkles },
-  { id: "Stress", label: "Stress relief", Icon: Brain },
-  { id: "Movement", label: "Movement", Icon: Dumbbell },
-  { id: "Food", label: "Nutrition", Icon: Utensils },
-  { id: "Recovery", label: "Recovery", Icon: HeartPulse },
+  { id: "All", label: "All services", Icon: Sparkles, tone: "text-[#8C6246]" },
+  { id: "Stress", label: "Stress relief", Icon: Brain, tone: "text-[#2C7DA0]" },
+  { id: "Movement", label: "Movement", Icon: Dumbbell, tone: "text-[#276442]" },
+  { id: "Food", label: "Nutrition", Icon: Utensils, tone: "text-[#D58A25]" },
+  { id: "Recovery", label: "Recovery", Icon: HeartPulse, tone: "text-[#B23A24]" },
 ] as const;
 
 type Props = {
   filter: MarketCategory;
-  setFilter: (v: MarketCategory) => void;
+  setFilter: (value: MarketCategory) => void;
   search: string;
-  setSearch: (v: string) => void;
+  setSearch: (value: string) => void;
   recommendedCategory: Provider["category"];
+  providers: ExtendedProvider[];
 };
 
 export default function MarketSidebar({
@@ -29,99 +30,96 @@ export default function MarketSidebar({
   search,
   setSearch,
   recommendedCategory,
+  providers,
 }: Props) {
   const { score, scoreLabel, checkIn, stamps } = useWellness();
-  const todayCount = extendedProviders.filter((p) => p.availableToday).length;
-
-  const reason =
-    checkIn.redFlags ? "Warning signs are selected, so provider-led recovery options are ranked first." :
-    checkIn.womenWellness ? "Women's wellness mode is on, so private recovery and teleconsult options are prioritised." :
-    checkIn.painAreas.length > 0 ? "Body-map pain is selected, so spine-safe movement and posture services are ranked first." :
-    checkIn.stress >= 8 ? "Your stress is high, so these services target nervous system reset." :
-    checkIn.stress >= 6 ? "Your stress level suggests relaxation services would help most today." :
-    checkIn.movement < 15 ? "Low movement today, so movement services are ranked first for you." :
-    checkIn.sleep < 5 ? "Short sleep, so recovery and relaxation services are prioritised." :
-    "Balanced recommendation based on your current TenaScore.";
+  const todayCount = providers.filter((provider) => provider.availableToday).length;
+  const reason = getRecommendationReason(checkIn, recommendedCategory);
 
   return (
-    <div className="grid content-start gap-5">
-      <section className="overflow-hidden rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] shadow-sm shadow-[#0A2318]/5">
-        <div className="p-5">
-          <p className="text-xs font-bold uppercase text-[#8C6246]">TenaMarket</p>
-          <h2 className="mt-1 font-serif text-2xl text-[#0A2318]">Wellness booking</h2>
+    <aside className="grid content-start gap-4 xl:sticky xl:top-6">
+      <section className="overflow-hidden rounded-lg border border-[#0A2318]/10 bg-[#0A2318] p-5 text-[#E8EDE7] shadow-sm shadow-[#0A2318]/5">
+        <div className="flex items-center gap-2 text-[#EFB84C]">
+          <Sparkles size={16} />
+          <p className="text-xs font-bold uppercase tracking-[0.16em]">AI recommendation</p>
         </div>
-
-        <div className="bg-[#0A2318] p-5 text-[#E8EDE7]">
-          <p className="text-[10px] font-bold uppercase text-[#D4C1A0]/70">
-            AI recommendation
-          </p>
-          <p className="mt-1 text-sm font-semibold capitalize text-[#D4C1A0]">
-            Prioritise {recommendedCategory} services
-          </p>
-          <p className="mt-2 text-xs leading-5 text-[#E8EDE7]/65">{reason}</p>
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
-            <span className="rounded-full bg-[#E8EDE7]/10 px-2.5 py-1 font-semibold text-[#D4C1A0]">
-              Score {score} - {scoreLabel}
-            </span>
-            <span className="text-[#E8EDE7]/48">{todayCount} available today</span>
-          </div>
+        <h2 className="mt-4 font-serif text-3xl leading-tight text-white">{recommendedCategory} first</h2>
+        <p className="mt-3 text-sm leading-6 text-white/70">{reason}</p>
+        <div className="mt-4 grid grid-cols-2 gap-2">
+          <RecommendationStat label="Score" value={`${score} ${scoreLabel}`} />
+          <RecommendationStat label="Today" value={`${todayCount} open`} />
         </div>
-
-        {stamps.length >= 2 && (
-          <div className="border-t border-[#0A2318]/10 bg-[#D4C1A0]/30 px-5 py-4">
-            <p className="text-xs font-bold text-[#8C6246]">
-              Passport discount active - {stamps.length} stamps earned
-            </p>
-            <p className="mt-0.5 text-xs text-[#0A2318]/60">
-              You qualify for 10-20% off on eligible services.
-            </p>
+        {stamps.length >= 2 ? (
+          <div className="mt-4 rounded-lg border border-[#EFB84C]/20 bg-[#EFB84C]/12 p-3">
+            <p className="text-xs font-bold text-[#EFB84C]">Passport active</p>
+            <p className="mt-1 text-xs leading-5 text-white/70">{stamps.length} stamps unlock eligible market discounts.</p>
           </div>
-        )}
+        ) : null}
       </section>
 
-      <div className="relative">
-        <Search size={16} className="pointer-events-none absolute left-4 top-3.5 text-[#0A2318]/35" />
-        <input
-          value={search}
-          onChange={(event) => setSearch(event.target.value)}
-          placeholder="Search by name or area..."
-          className="h-12 w-full rounded-2xl border border-[#0A2318]/12 bg-[#E8EDE7] pl-10 pr-4 text-sm text-[#0A2318] outline-none focus:border-[#8C6246]"
-        />
-      </div>
+      <section className="rounded-lg border border-[#0A2318]/10 bg-white p-4 shadow-sm shadow-[#0A2318]/5">
+        <p className="mb-3 text-xs font-bold uppercase tracking-[0.16em] text-[#8C6246]">Refine</p>
+        <div className="relative">
+          <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#0A2318]/38" />
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search area or service"
+            className="h-11 w-full rounded-lg border border-[#0A2318]/10 bg-[#F7F9F5] pl-9 pr-3 text-sm text-[#0A2318] outline-none transition focus:border-[#8C6246]/50"
+          />
+        </div>
 
-      <section className="rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-4 shadow-sm shadow-[#0A2318]/5">
-        <p className="mb-3 text-xs font-bold uppercase text-[#0A2318]/40">Filter by type</p>
-        <div className="grid gap-1.5">
-          {CATEGORIES.map(({ id, label, Icon }) => (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setFilter(id)}
-              className={cn(
-                "flex h-10 items-center gap-2.5 rounded-2xl px-3.5 text-sm font-medium transition",
-                filter === id
-                  ? "bg-[#0A2318] text-[#E8EDE7]"
-                  : "text-[#0A2318]/65 hover:bg-[#0A2318]/6",
-              )}
-            >
-              <Icon size={16} />
-              <span className="flex-1 text-left">{label}</span>
-              {id !== "All" && (
+        <div className="mt-4 grid gap-1.5">
+          {CATEGORIES.map(({ id, label, Icon, tone }) => {
+            const selected = filter === id;
+            const count = id === "All" ? providers.length : providers.filter((provider) => provider.category === id).length;
+            return (
+              <button
+                key={id}
+                type="button"
+                onClick={() => setFilter(id)}
+                className={cn(
+                  "flex h-11 items-center gap-2 rounded-lg px-3 text-sm font-semibold transition",
+                  selected
+                    ? "bg-[#0A2318] text-[#E8EDE7]"
+                    : "text-[#0A2318]/68 hover:bg-[#F7F9F5] hover:text-[#0A2318]",
+                )}
+              >
+                <Icon size={16} className={selected ? "text-[#EFB84C]" : tone} />
+                <span className="flex-1 text-left">{label}</span>
                 <span
                   className={cn(
-                    "rounded-full px-2 py-0.5 text-[10px] font-bold",
-                    filter === id
-                      ? "bg-[#E8EDE7]/15 text-[#D4C1A0]"
-                      : "bg-[#0A2318]/8 text-[#0A2318]/45",
+                    "rounded-md px-2 py-0.5 text-[10px] font-bold",
+                    selected ? "bg-white/10 text-[#EFB84C]" : "bg-[#0A2318]/6 text-[#0A2318]/45",
                   )}
                 >
-                  {extendedProviders.filter((provider) => provider.category === id).length}
+                  {count}
                 </span>
-              )}
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
       </section>
+    </aside>
+  );
+}
+
+function RecommendationStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-white/8 px-3 py-2">
+      <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/42">{label}</p>
+      <p className="mt-1 truncate text-sm font-bold text-white">{value}</p>
     </div>
   );
+}
+
+function getRecommendationReason(checkIn: ReturnType<typeof useWellness>["checkIn"], recommendedCategory: Provider["category"]) {
+  if (checkIn.redFlags) return "Warning signs are selected, so licensed recovery options are ranked first.";
+  if (checkIn.womenWellness) return "Women's wellness mode is on, so private recovery and care options are prioritized.";
+  if (checkIn.painAreas.length > 0) return "Body-map pain is selected, so movement and posture-safe services rise to the top.";
+  if (checkIn.stress >= 8) return "Stress is high today, so calming services and guided reset support are prioritized.";
+  if (checkIn.stress >= 6) return "Your stress signal suggests relaxation and mind-body services would help most.";
+  if (checkIn.movement < 15) return "Movement is low today, so trainer-led and gentle activity services are ranked first.";
+  if (checkIn.sleep < 5) return "Short sleep makes recovery, massage, and low-stimulation support more relevant.";
+  return `Balanced recommendation based on your current TenaScore, with ${recommendedCategory.toLowerCase()} as the strongest signal.`;
 }

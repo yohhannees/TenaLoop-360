@@ -1,9 +1,9 @@
-import AuthForm from "@/components/auth/AuthForm";
+import { AnimatedAuthPage } from "@/components/ui/animated-characters-login-page";
 
 export const metadata = {
-  title: "Sign up - TenaLoop 360",
+  title: "Create account - TenaLoop 360",
 };
 
 export default function SignupPage() {
-  return <AuthForm mode="signup" />;
+  return <AnimatedAuthPage mode="signup" />;
 }

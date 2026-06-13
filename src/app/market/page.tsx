@@ -1,8 +1,9 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import Image from "next/image";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { CalendarCheck, Sparkles, Store } from "lucide-react";
+import { CalendarCheck, MapPin, Search, Sparkles, Star, Store } from "lucide-react";
 import { useWellness } from "@/context/WellnessContext";
 import { useMarketFilter, SortMode } from "@/hooks/useMarketFilter";
 import { ExtendedProvider, extendedProviders } from "@/lib/market-providers";
@@ -14,9 +15,9 @@ import { cn } from "@/lib/utils";
 
 const SORT_OPTIONS: { id: SortMode; label: string }[] = [
   { id: "recommended", label: "Best match" },
-  { id: "available",   label: "Available today" },
-  { id: "rating",      label: "Top rated" },
-  { id: "price-asc",   label: "Price: low first" },
+  { id: "available", label: "Available today" },
+  { id: "rating", label: "Top rated" },
+  { id: "price-asc", label: "Lowest price" },
 ];
 
 function dbProviderToExtended(p: Record<string, unknown>): ExtendedProvider {
@@ -63,17 +64,13 @@ function MarketPageContent() {
   const [dismissedLinkedProviderId, setDismissedLinkedProviderId] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/providers")
+    fetch("/api/providers", { cache: "no-store" })
       .then((r) => r.json())
       .then((data: { providers?: Record<string, unknown>[] }) => {
-        if (data.providers?.length) {
-          setProviders(data.providers.map(dbProviderToExtended));
-        }
+        if (data.providers?.length) setProviders(data.providers.map(dbProviderToExtended));
       })
       .catch(() => {});
   }, []);
-
-  const linkedProvider = providers.find((p) => p.id === linkedProviderId) ?? null;
 
   const recommendedCategory =
     checkIn.redFlags ? "Recovery" :
@@ -86,16 +83,26 @@ function MarketPageContent() {
   const { filter, setFilter, search, setSearch, sort, setSort, filtered } =
     useMarketFilter(providers, recommendedCategory);
 
-  function toggleExpand(id: string) { setExpandedId((prev) => (prev === id ? null : id)); }
-  function initiateBooking(p: ExtendedProvider) { if (!bookedProviders.includes(p.id)) setBookingProvider(p); }
-
+  const linkedProvider = providers.find((p) => p.id === linkedProviderId) ?? null;
   const queryBookingProvider =
-    linkedProvider &&
-    dismissedLinkedProviderId !== linkedProvider.id &&
-    !bookedProviders.includes(linkedProvider.id)
+    linkedProvider && dismissedLinkedProviderId !== linkedProvider.id && !bookedProviders.includes(linkedProvider.id)
       ? linkedProvider
       : null;
   const activeBookingProvider = bookingProvider ?? queryBookingProvider;
+
+  const heroProvider = useMemo(() => {
+    return providers.find((provider) => provider.category === recommendedCategory && provider.availableToday) ??
+      providers.find((provider) => provider.category === recommendedCategory) ??
+      providers[0];
+  }, [providers, recommendedCategory]);
+
+  function toggleExpand(id: string) {
+    setExpandedId((prev) => (prev === id ? null : id));
+  }
+
+  function initiateBooking(provider: ExtendedProvider) {
+    if (!bookedProviders.includes(provider.id)) setBookingProvider(provider);
+  }
 
   function confirmBooking(details: Parameters<typeof bookProvider>[1]) {
     if (activeBookingProvider) bookProvider(activeBookingProvider.id, details);
@@ -109,115 +116,168 @@ function MarketPageContent() {
 
   function handleReviewSubmit(providerId: string, newRating: number, newCount: number) {
     setProviders((prev) =>
-      prev.map((p) =>
-        p.id === providerId ? { ...p, rating: newRating, reviews: newCount } : p,
+      prev.map((provider) =>
+        provider.id === providerId ? { ...provider, rating: newRating, reviews: newCount } : provider,
       ),
     );
   }
 
   return (
-    <>
-      {activeBookingProvider && (
+    <div className="grid min-w-0 gap-6 pb-10">
+      {activeBookingProvider ? (
         <BookingModal provider={activeBookingProvider} onClose={closeModal} onConfirm={confirmBooking} />
-      )}
-    <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
+      ) : null}
 
-      <MarketSidebar
-        filter={filter}
-        setFilter={setFilter}
-        search={search}
-        setSearch={setSearch}
-        recommendedCategory={recommendedCategory}
-      />
-
-      <div className="grid content-start gap-5">
-        <section className="overflow-hidden rounded-[2rem] border border-[#0A2318]/10 bg-[#0A2318] text-[#E8EDE7] shadow-sm shadow-[#0A2318]/5">
-          <div className="grid gap-5 p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 text-xs font-bold uppercase text-[#D4C1A0]">
-                <Store size={15} />
-                Marketplace command center
-              </div>
-              <h1 className="mt-2 font-serif text-4xl leading-tight">
-                Local care matched to today&apos;s score.
+      <section className="grid min-w-0 gap-4 xl:grid-cols-[minmax(0,1.12fr)_minmax(340px,0.88fr)]">
+        <div className="relative min-h-[330px] overflow-hidden rounded-lg bg-[#0A2318] text-white shadow-sm shadow-[#0A2318]/10">
+          <Image
+            src={heroProvider?.imageUrl || "/tenaloop-photo-market.jpg"}
+            alt={heroProvider?.name || "TenaMarket"}
+            fill
+            priority
+            unoptimized={Boolean(heroProvider?.imageUrl?.startsWith("http"))}
+            sizes="(min-width: 1280px) 720px, 100vw"
+            className="object-cover opacity-80"
+          />
+          <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(10,35,24,0.92),rgba(10,35,24,0.62)_42%,rgba(10,35,24,0.12))]" />
+          <div className="relative z-10 flex min-h-[330px] max-w-2xl flex-col justify-between p-5 sm:p-7">
+            <div>
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#EFB84C]">TenaMarket Addis</p>
+              <h1 className="mt-3 max-w-xl font-serif text-5xl leading-[0.98] text-white">
+                Care that feels selected, not searched.
               </h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-[#E8EDE7]/68">
-                Browse providers, bundles, and same-day slots that connect the
-                TenaScore to real services around Addis.
+              <p className="mt-4 max-w-lg text-sm leading-6 text-white/72">
+                Real Ethiopian wellness providers matched to your current score, body signals, passport stamps, and daily loop.
               </p>
             </div>
-            <div className="grid min-w-0 grid-cols-3 gap-2">
-              <MarketStat icon={Sparkles} label="Match" value={recommendedCategory} />
-              <MarketStat icon={CalendarCheck} label="Booked" value={`${bookedProviders.length}`} />
-              <MarketStat icon={Store} label="Stamps" value={`${stamps.length}/6`} />
-            </div>
-          </div>
-        </section>
 
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-sm text-[#0A2318]/55">
-            <span className="font-semibold text-[#0A2318]">{filtered.length}</span>
-            {" "}service{filtered.length !== 1 ? "s" : ""} found
-            {search && <span> for &quot;<span className="font-medium">{search}</span>&quot;</span>}
-          </p>
-          <div className="no-scrollbar flex gap-1.5 overflow-x-auto">
-            {SORT_OPTIONS.map(({ id, label }) => (
-              <button
-                key={id}
-                type="button"
-                onClick={() => setSort(id)}
-                className={cn(
-                  "h-8 shrink-0 rounded-full px-3.5 text-xs font-semibold transition",
-                  sort === id
-                    ? "bg-[#0A2318] text-[#E8EDE7]"
-                    : "bg-[#0A2318]/8 text-[#0A2318]/60 hover:bg-[#0A2318]/14",
-                )}
-              >
-                {label}
-              </button>
-            ))}
+            <div className="grid gap-2 sm:grid-cols-3">
+              <HeroStat icon={Sparkles} label="Match" value={recommendedCategory} />
+              <HeroStat icon={CalendarCheck} label="Bookings" value={bookedProviders.length.toString()} />
+              <HeroStat icon={Store} label="Passport" value={`${stamps.length}/6`} />
+            </div>
           </div>
         </div>
 
-        {filtered.length === 0 ? (
-          <div className="rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-8 text-center">
-            <p className="text-2xl">🔍</p>
-            <p className="mt-2 font-serif text-xl text-[#0A2318]">No results</p>
-            <p className="mt-1 text-sm text-[#0A2318]/55">Try a different search or filter.</p>
-          </div>
-        ) : (
-          <div className="grid gap-4 md:grid-cols-2">
-            {filtered.map((provider) => (
-              <ProviderCard
-                key={provider.id}
-                provider={provider}
-                booked={bookedProviders.includes(provider.id)}
-                recommended={provider.category === recommendedCategory}
-                passportStamps={stamps.length}
-                expanded={expandedId === provider.id}
-                onExpand={() => toggleExpand(provider.id)}
-                onBook={() => initiateBooking(provider)}
-                onReviewSubmit={handleReviewSubmit}
-              />
-            ))}
-          </div>
-        )}
+        <div className="grid content-stretch gap-4">
+          <article className="rounded-lg border border-[#0A2318]/10 bg-white p-5 shadow-sm shadow-[#0A2318]/5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#8C6246]">Featured nearby</p>
+                <h2 className="mt-1 font-serif text-3xl leading-tight text-[#0A2318]">{heroProvider?.name}</h2>
+              </div>
+              <span className="rounded-lg border border-[#EFB84C]/28 bg-[#FFF6DD] px-3 py-1.5 text-xs font-bold text-[#8C6246]">
+                {heroProvider?.price}
+              </span>
+            </div>
+            <p className="mt-3 text-sm leading-6 text-[#0A2318]/64">{heroProvider?.bestFor}</p>
+            <div className="mt-4 grid grid-cols-3 gap-2">
+              <MiniMetric icon={Star} label="Rating" value={heroProvider ? heroProvider.rating.toFixed(1) : "--"} />
+              <MiniMetric icon={MapPin} label="Area" value={heroProvider?.area ?? "--"} />
+              <MiniMetric icon={CalendarCheck} label="Today" value={heroProvider?.availableToday ? "Open" : "Soon"} />
+            </div>
+          </article>
 
-        <WellnessPackages />
+          <div className="rounded-lg border border-[#0A2318]/10 bg-white p-3 shadow-sm shadow-[#0A2318]/5">
+            <div className="relative">
+              <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[#0A2318]/38" />
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search spa, gym, nutrition, Bole..."
+                className="h-12 w-full rounded-lg border border-[#0A2318]/10 bg-[#F7F9F5] pl-10 pr-4 text-sm text-[#0A2318] outline-none transition focus:border-[#8C6246]/50"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div className="grid min-w-0 gap-6 xl:grid-cols-[300px_minmax(0,1fr)]">
+        <MarketSidebar
+          filter={filter}
+          setFilter={setFilter}
+          search={search}
+          setSearch={setSearch}
+          recommendedCategory={recommendedCategory}
+          providers={providers}
+        />
+
+        <div className="grid min-w-0 content-start gap-5">
+          <div className="flex flex-col gap-3 rounded-lg border border-[#0A2318]/10 bg-white p-4 shadow-sm shadow-[#0A2318]/5 lg:flex-row lg:items-center lg:justify-between">
+            <p className="text-sm text-[#0A2318]/64">
+              <span className="font-bold text-[#0A2318]">{filtered.length}</span>{" "}
+              service{filtered.length === 1 ? "" : "s"}
+              {search ? <span> matching <span className="font-semibold text-[#0A2318]">{search}</span></span> : null}
+            </p>
+            <div className="no-scrollbar flex gap-2 overflow-x-auto">
+              {SORT_OPTIONS.map(({ id, label }) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setSort(id)}
+                  className={cn(
+                    "h-9 shrink-0 rounded-lg border px-3 text-xs font-semibold transition",
+                    sort === id
+                      ? "border-[#0A2318] bg-[#0A2318] text-[#E8EDE7]"
+                      : "border-[#0A2318]/10 bg-[#F7F9F5] text-[#0A2318]/62 hover:border-[#0A2318]/24 hover:text-[#0A2318]",
+                  )}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {filtered.length === 0 ? (
+            <div className="rounded-lg border border-[#0A2318]/10 bg-white p-10 text-center shadow-sm shadow-[#0A2318]/5">
+              <p className="font-serif text-3xl text-[#0A2318]">No providers match yet</p>
+              <p className="mt-2 text-sm text-[#0A2318]/58">Try a different search, category, or sort mode.</p>
+            </div>
+          ) : (
+            <div className="grid min-w-0 gap-5 lg:grid-cols-2">
+              {filtered.map((provider) => (
+                <ProviderCard
+                  key={provider.id}
+                  provider={provider}
+                  booked={bookedProviders.includes(provider.id)}
+                  recommended={provider.category === recommendedCategory}
+                  passportStamps={stamps.length}
+                  expanded={expandedId === provider.id}
+                  onExpand={() => toggleExpand(provider.id)}
+                  onBook={() => initiateBooking(provider)}
+                  onReviewSubmit={handleReviewSubmit}
+                />
+              ))}
+            </div>
+          )}
+
+          <WellnessPackages />
+        </div>
       </div>
     </div>
-    </>
   );
 }
 
-function MarketStat({ icon: Icon, label, value }: { icon: typeof Store; label: string; value: string }) {
+function HeroStat({ icon: Icon, label, value }: { icon: typeof Store; label: string; value: string }) {
   return (
-    <div className="min-w-0 rounded-2xl border border-[#E8EDE7]/12 px-3 py-2">
-      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-[#D4C1A0]/72">
-        <Icon size={13} />
+    <div className="rounded-lg border border-white/12 bg-white/10 px-3 py-2 backdrop-blur">
+      <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-white/58">
+        <Icon size={12} className="text-[#EFB84C]" />
         {label}
       </div>
-      <p className="mt-1 truncate text-sm font-semibold text-[#E8EDE7]">{value}</p>
+      <p className="mt-1 truncate font-serif text-xl leading-none text-white">{value}</p>
+    </div>
+  );
+}
+
+function MiniMetric({ icon: Icon, label, value }: { icon: typeof Store; label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-[#0A2318]/8 bg-[#F7F9F5] px-3 py-2">
+      <div className="flex items-center gap-1.5 text-[#8C6246]">
+        <Icon size={13} />
+        <span className="text-[10px] font-bold uppercase tracking-[0.12em]">{label}</span>
+      </div>
+      <p className="mt-1 truncate text-sm font-bold text-[#0A2318]">{value}</p>
     </div>
   );
 }
