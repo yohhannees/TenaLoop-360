@@ -1,15 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Activity, Check, Lock, ShieldCheck, Sparkles, X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
+import { Activity, Check, Lock, RefreshCw, ShieldCheck, Sparkles, X } from "lucide-react";
 import { Integration } from "@/lib/integrations";
 import BrandLogo from "./BrandLogo";
 
-const INK = "#211D17";
-const PAPER = "#F6F1E8";
-const SAGE = "#5E7A5C";
-const GOLD = "#C2913C";
+const GOLD = "#D6A64B";
 
 type Phase = "consent" | "connecting" | "done";
 
@@ -23,150 +20,240 @@ export default function ConnectModal({ integration, onClose, onConnected }: Prop
   const [phase, setPhase] = useState<Phase>("consent");
   const [progress, setProgress] = useState(0);
 
-  // Animated "secure import" progress
   useEffect(() => {
     if (phase !== "connecting") return;
-    let p = 0;
-    const t = setInterval(() => {
-      p += Math.random() * 11 + 6;
-      if (p >= 100) {
-        p = 100;
-        clearInterval(t);
+
+    let nextProgress = 0;
+    const timer = setInterval(() => {
+      nextProgress += Math.random() * 11 + 6;
+      if (nextProgress >= 100) {
+        nextProgress = 100;
+        clearInterval(timer);
         setProgress(100);
         setTimeout(() => setPhase("done"), 450);
+        return;
       }
-      setProgress(Math.min(100, p));
+      setProgress(Math.min(100, nextProgress));
     }, 230);
-    return () => clearInterval(t);
+
+    return () => clearInterval(timer);
   }, [phase]);
 
-  // Fire the reward exactly once, when we reach the success screen
   useEffect(() => {
     if (phase === "done") onConnected();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
   const stage =
-    progress < 28 ? "Opening secure login…" :
-    progress < 58 ? "Authenticating your account…" :
-    progress < 84 ? "Granting permissions…" :
-    "Importing your latest data…";
+    progress < 28
+      ? "Opening secure login..."
+      : progress < 58
+        ? "Authenticating account..."
+        : progress < 84
+          ? "Granting read-only access..."
+          : "Importing latest signals...";
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center sm:p-4"
-      style={{ background: "rgba(33,29,23,0.6)", backdropFilter: "blur(6px)" }}>
+    <div
+      className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center sm:p-4"
+      style={{ background: "rgba(7, 28, 19, 0.66)", backdropFilter: "blur(8px)" }}
+    >
       {phase !== "connecting" && <div className="absolute inset-0" onClick={onClose} />}
 
       <motion.div
-        initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }}
-        className="relative w-full max-w-md overflow-hidden rounded-t-3xl shadow-2xl sm:rounded-3xl"
-        style={{ background: "#fff" }}>
+        initial={{ y: 28, opacity: 0, scale: 0.98 }}
+        animate={{ y: 0, opacity: 1, scale: 1 }}
+        exit={{ y: 12, opacity: 0, scale: 0.98 }}
+        className="relative w-full max-w-lg overflow-hidden rounded-t-lg bg-white shadow-2xl shadow-black/30 sm:rounded-lg"
+      >
+        <div className="relative overflow-hidden bg-[#071C13] px-5 py-5 text-[#E8EDE7] sm:px-6">
+          <div
+            aria-hidden
+            className="absolute inset-0 opacity-35"
+            style={{
+              backgroundImage:
+                "linear-gradient(135deg, rgba(214,166,75,0.34), transparent 44%), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(0deg, rgba(255,255,255,0.06) 1px, transparent 1px)",
+              backgroundSize: "100% 100%, 36px 36px, 36px 36px",
+            }}
+          />
 
-        {/* Brand band */}
-        <div className="relative flex items-center justify-center gap-5 px-6 py-7" style={{ background: PAPER }}>
-          {phase !== "connecting" && (
-            <button onClick={onClose} className="absolute right-4 top-4 grid h-8 w-8 place-items-center rounded-full" style={{ border: `1px solid ${INK}14`, color: `${INK}50` }}>
-              <X size={14} />
-            </button>
-          )}
-          <Tile><Activity size={24} style={{ color: INK }} /></Tile>
-          <ConnectorDots active={phase === "connecting"} />
-          <Tile border={integration.color}>
-            <BrandLogo slug={integration.slug} color={integration.color} name={integration.name} Fallback={integration.Icon} size={26} />
-          </Tile>
+          <div className="relative flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#D6A64B]">
+                Secure connection
+              </p>
+              <h2 className="mt-2 font-serif text-3xl leading-tight text-white">
+                Link {integration.name}
+              </h2>
+              <p className="mt-2 max-w-sm text-sm leading-6 text-[#E8EDE7]/64">
+                TenaLoop will import only the signals you approve.
+              </p>
+            </div>
+
+            {phase !== "connecting" && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/12 bg-white/8 text-[#E8EDE7]/72 transition hover:bg-white/12 hover:text-white"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+
+          <div className="relative mt-5 grid grid-cols-[1fr_auto_1fr] items-center gap-3">
+            <BrandTile>
+              <Activity size={24} strokeWidth={1.7} className="text-[#D6A64B]" />
+            </BrandTile>
+            <ConnectorDots active={phase === "connecting"} />
+            <BrandTile border={integration.color}>
+              <BrandLogo
+                slug={integration.slug}
+                color={integration.color}
+                name={integration.name}
+                Fallback={integration.Icon}
+                size={28}
+              />
+            </BrandTile>
+          </div>
         </div>
 
         <AnimatePresence mode="wait">
-          {/* ───────── CONSENT ───────── */}
           {phase === "consent" && (
-            <motion.div key="consent" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="px-6 pb-6">
-              <p className="text-center text-[10px] font-bold uppercase tracking-[0.25em]" style={{ color: `${INK}50` }}>
-                Authorize connection
-              </p>
-              <h2 className="mt-1.5 text-center font-serif text-2xl leading-tight" style={{ color: INK }}>
-                TenaLoop wants to access<br />your {integration.name} data
-              </h2>
-
-              <div className="mt-5 rounded-2xl p-4" style={{ background: PAPER }}>
-                <p className="text-[10px] font-bold uppercase tracking-wide" style={{ color: `${INK}45` }}>This will sync</p>
-                <div className="mt-3 grid gap-2.5">
+            <motion.div
+              key="consent"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="px-5 py-5 sm:px-6"
+            >
+              <div className="rounded-lg border border-[#0A2318]/10 bg-[#F7F4EC] p-4">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#8C6246]">
+                  This will sync
+                </p>
+                <div className="mt-3 grid gap-2">
                   {integration.scopes.map((scope) => (
-                    <div key={scope} className="flex items-center gap-3">
-                      <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full" style={{ background: `${SAGE}1F` }}>
-                        <Check size={12} strokeWidth={3} style={{ color: SAGE }} />
+                    <div key={scope} className="flex min-w-0 items-center gap-3 rounded-lg bg-white px-3 py-2">
+                      <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-[#5E7A5C]/12 text-[#5E7A5C]">
+                        <Check size={13} strokeWidth={3} />
                       </span>
-                      <span className="text-sm" style={{ color: `${INK}D0` }}>{scope}</span>
+                      <span className="min-w-0 truncate text-sm font-medium text-[#0A2318]/78">{scope}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="mt-4 flex items-center gap-2 rounded-xl px-3 py-2.5" style={{ background: `${SAGE}12` }}>
-                <Lock size={13} style={{ color: SAGE }} />
-                <p className="text-[11px] leading-snug" style={{ color: `${INK}90` }}>
-                  Secured with OAuth 2.0 · read-only access · disconnect anytime.
+              <div className="mt-4 flex items-start gap-3 rounded-lg border border-[#5E7A5C]/18 bg-[#5E7A5C]/8 px-3 py-3">
+                <Lock size={15} className="mt-0.5 shrink-0 text-[#5E7A5C]" />
+                <p className="text-xs leading-5 text-[#0A2318]/68">
+                  OAuth 2.0 preview, read-only permissions, and local demo storage.
                 </p>
               </div>
 
-              <div className="mt-5 flex gap-3">
-                <button onClick={onClose} className="h-12 flex-1 rounded-2xl text-sm font-semibold transition" style={{ border: `1.5px solid ${INK}18`, color: `${INK}80` }}>
+              <div className="mt-5 grid grid-cols-2 gap-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="h-12 rounded-lg border border-[#0A2318]/12 bg-white text-sm font-bold text-[#0A2318]/64 transition hover:border-[#0A2318]/24 hover:text-[#0A2318]"
+                >
                   Cancel
                 </button>
-                <button onClick={() => setPhase("connecting")} className="h-12 flex-[1.4] rounded-2xl text-sm font-bold transition active:scale-95" style={{ background: INK, color: PAPER }}>
-                  Authorize {integration.name}
+                <button
+                  type="button"
+                  onClick={() => setPhase("connecting")}
+                  className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-[#0A2318] px-4 text-sm font-bold text-[#E8EDE7] transition hover:bg-[#123624] active:scale-[0.99]"
+                >
+                  <ShieldCheck size={16} />
+                  Authorize
                 </button>
               </div>
             </motion.div>
           )}
 
-          {/* ───────── CONNECTING ───────── */}
           {phase === "connecting" && (
-            <motion.div key="connecting" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="px-6 pb-8 pt-2">
-              <div className="mx-auto mt-2 max-w-xs text-center">
-                <p className="font-serif text-xl" style={{ color: INK }}>Connecting securely</p>
-                <AnimatePresence mode="wait">
-                  <motion.p key={stage} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
-                    className="mt-1 text-sm" style={{ color: `${INK}65` }}>
-                    {stage}
-                  </motion.p>
-                </AnimatePresence>
+            <motion.div
+              key="connecting"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              className="px-5 py-7 text-center sm:px-6"
+            >
+              <span className="mx-auto grid h-14 w-14 place-items-center rounded-lg border border-[#0A2318]/10 bg-[#F7F4EC] text-[#8C6246]">
+                <RefreshCw size={24} className="animate-spin" />
+              </span>
+              <h2 className="mt-4 font-serif text-3xl leading-tight text-[#0A2318]">
+                Connecting securely
+              </h2>
 
-                <div className="mt-5 h-2 overflow-hidden rounded-full" style={{ background: `${INK}10` }}>
-                  <motion.div className="h-full rounded-full" style={{ width: `${progress}%`, background: integration.color }} />
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={stage}
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  className="mt-2 text-sm text-[#0A2318]/58"
+                >
+                  {stage}
+                </motion.p>
+              </AnimatePresence>
+
+              <div className="mx-auto mt-6 max-w-sm">
+                <div className="h-2 overflow-hidden rounded-full bg-[#0A2318]/10">
+                  <motion.div
+                    className="h-full rounded-full"
+                    style={{ width: `${progress}%`, background: integration.color }}
+                  />
                 </div>
-                <p className="mt-2 text-[11px] font-semibold" style={{ color: `${INK}45` }}>{Math.round(progress)}%</p>
+                <p className="mt-2 text-xs font-bold text-[#0A2318]/42">{Math.round(progress)}%</p>
               </div>
             </motion.div>
           )}
 
-          {/* ───────── DONE ───────── */}
           {phase === "done" && (
-            <motion.div key="done" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="px-6 pb-6 pt-1 text-center">
-              <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 260, damping: 18 }}
-                className="mx-auto grid h-16 w-16 place-items-center rounded-full" style={{ background: SAGE }}>
-                <Check size={32} strokeWidth={3} className="text-white" />
+            <motion.div
+              key="done"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="px-5 py-5 text-center sm:px-6"
+            >
+              <motion.div
+                initial={{ scale: 0.72 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                className="mx-auto grid h-16 w-16 place-items-center rounded-lg bg-[#5E7A5C] text-white"
+              >
+                <Check size={32} strokeWidth={3} />
               </motion.div>
-              <h2 className="mt-4 font-serif text-2xl" style={{ color: INK }}>{integration.name} connected</h2>
-              <p className="mt-1 text-sm" style={{ color: `${INK}65` }}>Here&apos;s what we just synced for today.</p>
+
+              <h2 className="mt-4 font-serif text-3xl text-[#0A2318]">{integration.name} is live</h2>
+              <p className="mt-1 text-sm text-[#0A2318]/58">Latest signals imported for today.</p>
 
               <div className="mt-5 grid grid-cols-3 gap-2">
-                {integration.imported.map((d) => (
-                  <div key={d.label} className="rounded-2xl p-3" style={{ background: PAPER }}>
-                    <p className="font-serif text-xl leading-none" style={{ color: INK }}>{d.value}</p>
-                    <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide" style={{ color: `${INK}55` }}>{d.label}</p>
+                {integration.imported.map((data) => (
+                  <div key={data.label} className="min-w-0 rounded-lg border border-[#0A2318]/8 bg-[#F7F4EC] p-3">
+                    <p className="truncate font-serif text-xl leading-none text-[#0A2318]">{data.value}</p>
+                    <p className="mt-1 truncate text-[10px] font-bold uppercase tracking-wide text-[#0A2318]/45">
+                      {data.label}
+                    </p>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-4 flex items-center justify-center gap-2 rounded-2xl px-4 py-3" style={{ background: `${GOLD}1A` }}>
-                <Sparkles size={15} style={{ color: GOLD }} />
-                <p className="text-sm font-bold" style={{ color: GOLD }}>+{integration.points} points · {integration.stamp} stamp earned</p>
+              <div className="mt-4 flex items-center justify-center gap-2 rounded-lg border border-[#D6A64B]/22 bg-[#FFF8E7] px-4 py-3">
+                <Sparkles size={15} className="text-[#8C6246]" />
+                <p className="text-sm font-bold text-[#8C6246]">
+                  +{integration.points} points - {integration.stamp} stamp earned
+                </p>
               </div>
 
-              <button onClick={onClose} className="mt-5 h-12 w-full rounded-2xl text-sm font-bold transition active:scale-95" style={{ background: INK, color: PAPER }}>
+              <button
+                type="button"
+                onClick={onClose}
+                className="mt-5 h-12 w-full rounded-lg bg-[#0A2318] text-sm font-bold text-[#E8EDE7] transition hover:bg-[#123624] active:scale-[0.99]"
+              >
                 Done
               </button>
-              <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px]" style={{ color: `${INK}45` }}>
+              <p className="mt-3 flex items-center justify-center gap-1.5 text-[11px] font-semibold text-[#0A2318]/42">
                 <ShieldCheck size={12} /> Synced privately to this device
               </p>
             </motion.div>
@@ -177,10 +264,12 @@ export default function ConnectModal({ integration, onClose, onConnected }: Prop
   );
 }
 
-function Tile({ children, border }: { children: React.ReactNode; border?: string }) {
+function BrandTile({ children, border }: { children: React.ReactNode; border?: string }) {
   return (
-    <span className="grid h-16 w-16 place-items-center rounded-2xl bg-white shadow-sm"
-      style={{ border: `1px solid ${border ? `${border}55` : "rgba(33,29,23,0.12)"}` }}>
+    <span
+      className="grid h-16 place-items-center rounded-lg border bg-white/10 shadow-sm"
+      style={{ borderColor: border ? `${border}66` : "rgba(255,255,255,0.14)" }}
+    >
       {children}
     </span>
   );
@@ -189,11 +278,13 @@ function Tile({ children, border }: { children: React.ReactNode; border?: string
 function ConnectorDots({ active }: { active: boolean }) {
   return (
     <div className="flex items-center gap-1.5">
-      {[0, 1, 2].map((i) => (
-        <motion.span key={i} className="h-1.5 w-1.5 rounded-full"
-          style={{ background: active ? SAGE : "rgba(33,29,23,0.25)" }}
-          animate={active ? { opacity: [0.3, 1, 0.3] } : { opacity: 0.5 }}
-          transition={active ? { duration: 0.9, repeat: Infinity, delay: i * 0.18 } : {}}
+      {[0, 1, 2].map((index) => (
+        <motion.span
+          key={index}
+          className="h-1.5 w-1.5 rounded-full"
+          style={{ background: active ? GOLD : "rgba(232,237,231,0.42)" }}
+          animate={active ? { opacity: [0.35, 1, 0.35] } : { opacity: 0.6 }}
+          transition={active ? { duration: 0.9, repeat: Infinity, delay: index * 0.18 } : {}}
         />
       ))}
     </div>

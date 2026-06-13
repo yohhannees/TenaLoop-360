@@ -2,6 +2,7 @@
 
 import { useMemo, useState, type ElementType } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import ReferToCare from "@/components/safety/ReferToCare";
 import {
   Activity,
   AlertTriangle,
@@ -90,6 +91,7 @@ export default function LoopShell() {
   return (
     <div className="min-h-[calc(100vh-56px)] bg-[#E5EAE3] text-[#0A2318]">
       <div className="mx-auto grid max-w-7xl gap-6 px-4 py-5 sm:px-6 lg:px-8">
+        <ReferToCare />
         <header className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
           <section className="relative overflow-hidden rounded-lg border border-[#0A2318]/10 bg-[#0A2318] p-5 text-[#E8EDE7] shadow-sm shadow-[#0A2318]/10 sm:p-7">
             <div className="relative z-10 max-w-3xl">

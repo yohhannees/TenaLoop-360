@@ -9,6 +9,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Dumbbell,
+  Flower2,
   Globe2,
   LayoutDashboard,
   LogOut,
@@ -20,6 +21,7 @@ import {
   User,
   Users,
   Utensils,
+  Wind,
   X,
 } from "lucide-react";
 import { useWellness } from "@/context/WellnessContext";
@@ -27,10 +29,12 @@ import { cn } from "@/lib/utils";
 
 const NAV = [
   { href: "/loop",      label: "Rooted Body", sub: "Daily AI",   Icon: RefreshCw },
+  { href: "/breathe",   label: "Tinfash",     sub: "Breathe",    Icon: Wind },
   { href: "/coach",     label: "TenaBot",     sub: "AI coach",   Icon: Bot },
   { href: "/food",      label: "TenaPlate",   sub: "Nutrition",  Icon: Utensils },
   { href: "/move",      label: "TenaMove",    sub: "Movement",   Icon: Dumbbell },
   { href: "/circles",   label: "TenaCircle",  sub: "Community",  Icon: Users },
+  { href: "/women",     label: "Women's",     sub: "FemTech",    Icon: Flower2 },
   { href: "/market",    label: "TenaMarket",  sub: "Booking",    Icon: Store },
   { href: "/integrations", label: "Integrations", sub: "Connect apps", Icon: Plug },
   { href: "/dashboard", label: "Dashboard",   sub: "Analytics",  Icon: LayoutDashboard },
@@ -395,7 +399,7 @@ export default function Sidebar() {
           ) : (
             <>
               <Link
-                href="/signup"
+                href="/pricing"
                 onClick={close}
                   className="flex h-10 items-center justify-center gap-2 rounded-xl bg-[#8C6246] text-sm font-semibold text-[#E8EDE7] transition hover:bg-[#724F38]"
               >

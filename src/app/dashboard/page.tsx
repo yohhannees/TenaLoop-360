@@ -1,3 +1,4 @@
+import OutcomesStrip from "@/components/dashboard/OutcomesStrip";
 import ScoreTrend from "@/components/dashboard/ScoreTrend";
 import ActionDeck from "@/components/dashboard/ActionDeck";
 import PassportStamps from "@/components/dashboard/PassportStamps";
@@ -18,6 +19,7 @@ export default function DashboardPage() {
           Live score, check-ins, passport progress, and recommended next actions from your real activity.
         </p>
       </div>
+      <OutcomesStrip />
       <ScoreTrend />
       <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_360px]">
         <ActionDeck />
