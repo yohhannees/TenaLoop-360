@@ -95,7 +95,7 @@ export default function LoopShell() {
             <div className="relative z-10 max-w-3xl">
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#EFB84C]">Daily check-in</p>
               <h1 className="mt-3 font-serif text-5xl leading-[0.98] text-white">
-                Listen to the body before the day gets loud.
+                What Does your Body Telling you Today?
               </h1>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-white/70">
                 One calm loop for mood, pain, sleep, food, movement, and private health context.

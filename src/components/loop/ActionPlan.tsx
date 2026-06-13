@@ -167,7 +167,7 @@ export default function ActionPlan() {
             <p className="mt-2 max-w-xl text-sm leading-6 text-[#0A2318]/60">
               Do each action in real life, then tap <span className="font-semibold text-[#0A2318]">Mark done</span>.
               Each one adds <span className="font-semibold text-[#0A2318]">+12 points</span> and earns a passport
-              stamp — collect all six to unlock provider discounts.
+              stamp - collect all six to unlock provider discounts.
             </p>
           </div>
           <span className="shrink-0 rounded-full bg-[#D4C1A0]/45 px-3 py-2 text-sm font-semibold text-[#0A2318]">
@@ -206,7 +206,7 @@ export default function ActionPlan() {
                         isDone ? "bg-[#2D7A50]/15 text-[#2D7A50]" : "bg-[#0A2318]/8 text-[#0A2318]/55",
                       )}
                     >
-                      {item.stamp} stamp{isDone ? " ✓" : ""}
+                      {item.stamp} stamp{isDone ? " done" : ""}
                     </span>
                   </div>
                   <p className="mt-1 font-semibold text-[#0A2318]">{item.title}</p>
@@ -224,9 +224,9 @@ export default function ActionPlan() {
                   )}
                 >
                   {isDone ? (
-                    <><CheckCircle2 size={16} /> Done · +12 pts earned</>
+                    <><CheckCircle2 size={16} /> Done +12 pts earned</>
                   ) : (
-                    <><BadgeCheck size={16} /> Mark done · +12 pts</>
+                    <><BadgeCheck size={16} /> Mark done +12 pts</>
                   )}
                 </button>
               </div>
@@ -382,12 +382,12 @@ function EfoyResetPanel({
           Efoy reset
         </div>
         <span className="rounded-full bg-[#E8EDE7]/12 px-2.5 py-0.5 text-[10px] font-bold text-[#D4C1A0]">
-          EN · አማ
+          EN / AM
         </span>
       </div>
       <h3 className="mt-2 font-serif text-2xl leading-tight">
         Inhale. Relax.{" "}
-        <span className="text-[#D4C1A0]">ዕፎይ — Efoy.</span>
+        <span className="text-[#D4C1A0]">Efoy reset.</span>
       </h3>
 
       <div className="mt-4 grid min-h-40 place-items-center rounded-[1.25rem] border border-[#E8EDE7]/12 bg-[#153023] p-4">
@@ -401,9 +401,9 @@ function EfoyResetPanel({
       </div>
 
       <div className="mt-4 grid gap-2 text-sm leading-6 text-[#E8EDE7]/70">
-        <p><span className="font-bold text-[#D4C1A0]">ትንፍስ</span> · Inhale through the nose.</p>
-        <p><span className="font-bold text-[#D4C1A0]">ተዝናና</span> · Pause and soften the shoulders.</p>
-        <p><span className="font-bold text-[#D4C1A0]">ዕፎይ</span> · Exhale slowly — Efoy.</p>
+        <p><span className="font-bold text-[#D4C1A0]">Inhale</span> through the nose.</p>
+        <p><span className="font-bold text-[#D4C1A0]">Soften</span> the shoulders.</p>
+        <p><span className="font-bold text-[#D4C1A0]">Exhale</span> slowly - Efoy.</p>
       </div>
 
       <button
