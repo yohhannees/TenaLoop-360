@@ -1,16 +1,19 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Users } from "lucide-react";
 import { useWellness } from "@/context/WellnessContext";
-import { circles } from "@/lib/circles";
+import { circles as staticCircles } from "@/lib/circles";
+import { Circle } from "@/lib/types";
 import { CIRCLE_SESSIONS } from "@/lib/circle-content";
 import { cn } from "@/lib/utils";
 import MoodPulse from "@/components/circles/MoodPulse";
 import CommunityFeed from "@/components/circles/CommunityFeed";
 import ChallengeTracker from "@/components/circles/ChallengeTracker";
 import CircleCheckIn from "@/components/circles/CircleCheckIn";
+
+type CircleWithCount = Circle & { members: number };
 
 export default function CirclesPage() {
   return (
@@ -24,14 +27,25 @@ function CirclesPageContent() {
   const { joinedCircles, joinCircle } = useWellness();
   const searchParams = useSearchParams();
   const linkedCircleId = searchParams.get("circle");
-  const linkedCircle = circles.find((circle) => circle.id === linkedCircleId);
 
-  // Default to first joined circle, else first circle
-  const defaultId = linkedCircle?.id ?? joinedCircles[0] ?? circles[0].id;
+  const [circles, setCircles] = useState<CircleWithCount[]>(staticCircles);
+
+  useEffect(() => {
+    fetch("/api/circles")
+      .then((r) => r.json())
+      .then((data: { circles?: CircleWithCount[] }) => {
+        if (data.circles?.length) setCircles(data.circles);
+      })
+      .catch(() => {});
+  }, []);
+
+  const defaultId = linkedCircleId ?? joinedCircles[0] ?? circles[0]?.id ?? "";
   const [selectedId, setSelectedId] = useState(defaultId);
 
   const selected = circles.find((c) => c.id === selectedId) ?? circles[0];
   const session  = CIRCLE_SESSIONS.find((s) => s.circleId === selectedId);
+
+  if (!selected) return null;
 
   return (
     <div className="grid gap-5 lg:grid-cols-[300px_1fr]">
@@ -39,7 +53,6 @@ function CirclesPageContent() {
       {/* ── LEFT: Directory + Mood pulse ────────────────── */}
       <div className="grid content-start gap-5">
 
-        {/* Circle directory */}
         <section className="rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-5 shadow-sm shadow-[#0A2318]/5">
           <p className="text-xs font-bold uppercase text-[#8C6246]">TenaCircle</p>
           <h2 className="font-serif text-2xl text-[#0A2318]">Peer circles</h2>
@@ -47,9 +60,9 @@ function CirclesPageContent() {
 
           <div className="mt-4 grid gap-1.5">
             {circles.map((circle) => {
-              const joined  = joinedCircles.includes(circle.id);
-              const active  = circle.id === selectedId;
-              const sess    = CIRCLE_SESSIONS.find((s) => s.circleId === circle.id);
+              const joined = joinedCircles.includes(circle.id);
+              const active = circle.id === selectedId;
+              const sess   = CIRCLE_SESSIONS.find((s) => s.circleId === circle.id);
 
               return (
                 <button
@@ -58,17 +71,13 @@ function CirclesPageContent() {
                   onClick={() => setSelectedId(circle.id)}
                   className={cn(
                     "flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition",
-                    active
-                      ? "bg-[#0A2318] text-[#E8EDE7]"
-                      : "hover:bg-[#0A2318]/6 text-[#0A2318]",
+                    active ? "bg-[#0A2318] text-[#E8EDE7]" : "hover:bg-[#0A2318]/6 text-[#0A2318]",
                   )}
                 >
-                  <span
-                    className={cn(
-                      "flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
-                      active ? "bg-[#E8EDE7]/10" : "bg-[#0A2318]/8",
-                    )}
-                  >
+                  <span className={cn(
+                    "flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
+                    active ? "bg-[#E8EDE7]/10" : "bg-[#0A2318]/8",
+                  )}>
                     <Users size={13} className={active ? "text-[#D4C1A0]" : "text-[#0A2318]/55"} />
                   </span>
                   <div className="min-w-0 flex-1">
@@ -95,7 +104,6 @@ function CirclesPageContent() {
       {/* ── RIGHT: Active circle detail ─────────────────── */}
       <div className="grid content-start gap-5">
 
-        {/* Circle header */}
         <section className="rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-5 shadow-sm shadow-[#0A2318]/5">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
@@ -107,9 +115,7 @@ function CirclesPageContent() {
               {session && (
                 <span className={cn(
                   "rounded-full px-3 py-1.5 text-xs font-semibold",
-                  session.isToday
-                    ? "bg-[#0A2318] text-[#D4C1A0]"
-                    : "bg-[#0A2318]/8 text-[#0A2318]/65",
+                  session.isToday ? "bg-[#0A2318] text-[#D4C1A0]" : "bg-[#0A2318]/8 text-[#0A2318]/65",
                 )}>
                   {session.isToday ? "🔴 Live " : "📅 "}{selected.time}
                 </span>
@@ -129,7 +135,6 @@ function CirclesPageContent() {
             </div>
           </div>
 
-          {/* Stats row */}
           <div className="mt-4 flex flex-wrap gap-4 border-t border-[#0A2318]/8 pt-4">
             {[
               { label: "Members", value: selected.members.toString() },
@@ -144,22 +149,18 @@ function CirclesPageContent() {
           </div>
         </section>
 
-        {/* Challenge tracker */}
         <ChallengeTracker circleId={selectedId} />
 
-        {/* Community feed */}
         <section className="rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-5 shadow-sm shadow-[#0A2318]/5">
           <p className="text-xs font-bold uppercase text-[#8C6246]">Community feed</p>
           <h2 className="font-serif text-2xl text-[#0A2318]">What members shared</h2>
-          <p className="mt-1 text-xs text-[#0A2318]/50">All posts are anonymous</p>
+          <p className="mt-1 text-xs text-[#0A2318]/50">Posts are anonymous</p>
           <div className="mt-4">
             <CommunityFeed circleId={selectedId} />
           </div>
         </section>
 
-        {/* Weekly check-in */}
         <CircleCheckIn circleId={selectedId} />
-
       </div>
     </div>
   );

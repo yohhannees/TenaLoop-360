@@ -264,10 +264,10 @@ export function getRootedProviderMatches(checkIn: CheckIn): RootedProviderMatch[
 
   if (checkIn.stress >= 7) {
     matches.push({
-      id: "tulsi-efoy-yoga",
-      title: "Beginner yoga near Bole",
-      type: "Breath, alignment, and relaxation",
-      area: "Bole",
+      id: "tulsi-ayurveda-yoga",
+      title: "Tulsi Ayurveda, Yoga and Wellness Center",
+      type: "Yoga, Ayurveda, massage and wellness",
+      area: "Addis Ababa",
       reason: "Best match for high stress, low sleep, and a gentle nervous-system reset.",
       stamp: "Experience",
     });
@@ -275,33 +275,33 @@ export function getRootedProviderMatches(checkIn: CheckIn): RootedProviderMatch[
 
   if (hasPain || neckShoulder) {
     matches.push({
-      id: "bole-spine-posture",
-      title: "Spine/posture assessment",
-      type: "Chiropractic and physio triage",
+      id: "signature-wellness-bole",
+      title: "Signature Wellness",
+      type: "Fitness, Pilates, yoga and recovery",
       area: "Bole",
-      reason: "Good fit for neck, shoulder, back, wrist, or long-sitting pain patterns.",
+      reason: "Good fit for neck, shoulder, back, wrist, or long-sitting movement patterns.",
       stamp: "Health",
     });
   }
 
   if (checkIn.womenWellness ?? false) {
     matches.push({
-      id: "women-telehealth",
-      title: "Women's health teleconsult",
-      type: "Private licensed provider",
-      area: "Online",
-      reason: "Useful for severe cramps, pregnancy/postpartum questions, or private cycle concerns.",
+      id: "american-medical-center-checkup",
+      title: "American Medical Center",
+      type: "Health check-up and specialist appointment",
+      area: "Addis Ababa",
+      reason: "Useful when wellness questions should be routed to licensed medical support.",
       stamp: "Health",
     });
   }
 
   matches.push({
-    id: "kidi-mindfulness",
-    title: "Mindfulness workshop",
-    type: "Body awareness and reflection",
+    id: "radisson-rainforest-spa",
+    title: "Rainforest Day Spa at Radisson Blu",
+    type: "Spa, massage, salon and fitness center",
     area: "Kazanchis",
-    reason: "Helps turn body signals into a practical daily reflection practice.",
-    stamp: "Mind",
+    reason: "Helps turn body signals into a practical recovery appointment.",
+    stamp: "Experience",
   });
 
   matches.push({

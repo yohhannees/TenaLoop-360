@@ -243,6 +243,106 @@ CREATE TABLE "AppEvent" (
     CONSTRAINT "AppEvent_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "Provider" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "area" TEXT NOT NULL,
+    "price" TEXT NOT NULL,
+    "bestFor" TEXT NOT NULL,
+    "category" TEXT NOT NULL,
+    "description" TEXT NOT NULL DEFAULT '',
+    "avgRating" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "reviewCount" INTEGER NOT NULL DEFAULT 0,
+    "emoji" TEXT NOT NULL DEFAULT '',
+    "tags" JSONB NOT NULL DEFAULT '[]',
+    "availableToday" BOOLEAN NOT NULL DEFAULT true,
+    "slots" JSONB NOT NULL DEFAULT '[]',
+    "passportDiscount" INTEGER NOT NULL DEFAULT 0,
+    "distance" TEXT,
+    "hours" TEXT,
+    "phone" TEXT,
+    "imageUrl" TEXT,
+    "sourceUrl" TEXT,
+    "active" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Provider_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "WellnessBundle" (
+    "id" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "subtitle" TEXT NOT NULL,
+    "emoji" TEXT NOT NULL,
+    "providerIds" JSONB NOT NULL DEFAULT '[]',
+    "providerNames" JSONB NOT NULL DEFAULT '[]',
+    "originalEtb" INTEGER NOT NULL,
+    "discountPct" INTEGER NOT NULL,
+    "finalEtb" INTEGER NOT NULL,
+    "bestFor" TEXT NOT NULL,
+    "active" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "WellnessBundle_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "CircleRecord" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "time" TEXT NOT NULL,
+    "focus" TEXT NOT NULL,
+    "challenge" TEXT NOT NULL,
+    "active" BOOLEAN NOT NULL DEFAULT true,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "CircleRecord_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ProviderReview" (
+    "id" TEXT NOT NULL,
+    "providerId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "rating" INTEGER NOT NULL,
+    "text" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "ProviderReview_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "CirclePost" (
+    "id" TEXT NOT NULL,
+    "circleId" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "text" TEXT NOT NULL,
+    "mood" TEXT NOT NULL DEFAULT 'Okay',
+    "likes" INTEGER NOT NULL DEFAULT 0,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "CirclePost_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Notification" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "type" TEXT NOT NULL,
+    "title" TEXT NOT NULL,
+    "body" TEXT,
+    "read" BOOLEAN NOT NULL DEFAULT false,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Notification_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
@@ -318,6 +418,18 @@ CREATE INDEX "MovementSession_userId_type_createdAt_idx" ON "MovementSession"("u
 -- CreateIndex
 CREATE INDEX "AppEvent_userId_type_createdAt_idx" ON "AppEvent"("userId", "type", "createdAt");
 
+-- CreateIndex
+CREATE INDEX "ProviderReview_providerId_idx" ON "ProviderReview"("providerId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ProviderReview_userId_providerId_key" ON "ProviderReview"("userId", "providerId");
+
+-- CreateIndex
+CREATE INDEX "CirclePost_circleId_createdAt_idx" ON "CirclePost"("circleId", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "Notification_userId_read_createdAt_idx" ON "Notification"("userId", "read", "createdAt");
+
 -- AddForeignKey
 ALTER TABLE "WellnessState" ADD CONSTRAINT "WellnessState_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
@@ -365,3 +477,18 @@ ALTER TABLE "MovementSession" ADD CONSTRAINT "MovementSession_userId_fkey" FOREI
 
 -- AddForeignKey
 ALTER TABLE "AppEvent" ADD CONSTRAINT "AppEvent_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ProviderReview" ADD CONSTRAINT "ProviderReview_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ProviderReview" ADD CONSTRAINT "ProviderReview_providerId_fkey" FOREIGN KEY ("providerId") REFERENCES "Provider"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CirclePost" ADD CONSTRAINT "CirclePost_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CirclePost" ADD CONSTRAINT "CirclePost_circleId_fkey" FOREIGN KEY ("circleId") REFERENCES "CircleRecord"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Notification" ADD CONSTRAINT "Notification_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

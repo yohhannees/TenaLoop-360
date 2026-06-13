@@ -33,6 +33,9 @@ model User {
   fastingSessions   FastingSession[]
   movementSessions  MovementSession[]
   appEvents         AppEvent[]
+  providerReviews   ProviderReview[]
+  circlePosts       CirclePost[]
+  notifications     Notification[]
 }
 
 model WellnessState {
@@ -280,4 +283,105 @@ model AppEvent {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, type, createdAt])
+}
+
+model Provider {
+  id               String   @id
+  name             String
+  type             String
+  area             String
+  price            String
+  bestFor          String
+  category         String
+  description      String   @default("")
+  avgRating        Float    @default(0)
+  reviewCount      Int      @default(0)
+  emoji            String   @default("")
+  tags             Json     @default("[]")
+  availableToday   Boolean  @default(true)
+  slots            Json     @default("[]")
+  passportDiscount Int      @default(0)
+  distance         String?
+  hours            String?
+  phone            String?
+  imageUrl         String?
+  sourceUrl        String?
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  reviews ProviderReview[]
+}
+
+model WellnessBundle {
+  id            String   @id
+  title         String
+  subtitle      String
+  emoji         String
+  providerIds   Json     @default("[]")
+  providerNames Json     @default("[]")
+  originalEtb   Int
+  discountPct   Int
+  finalEtb      Int
+  bestFor       String
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model CircleRecord {
+  id        String   @id
+  name      String
+  time      String
+  focus     String
+  challenge String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  posts CirclePost[]
+}
+
+model ProviderReview {
+  id         String   @id @default(cuid())
+  providerId String
+  userId     String
+  rating     Int
+  text       String?
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, providerId])
+  @@index([providerId])
+}
+
+model CirclePost {
+  id        String   @id @default(cuid())
+  circleId  String
+  userId    String
+  text      String
+  mood      String   @default("Okay")
+  likes     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  user   User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  circle CircleRecord @relation(fields: [circleId], references: [id], onDelete: Cascade)
+
+  @@index([circleId, createdAt])
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  body      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read, createdAt])
 }

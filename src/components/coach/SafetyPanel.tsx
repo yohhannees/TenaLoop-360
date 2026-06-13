@@ -219,15 +219,15 @@ function getRecommendedProvider({
   womenWellness: boolean;
 }) {
   if (redFlags) {
-    return providers.find((provider) => provider.id === "kirkos-screening") ?? providers[0];
+    return providers.find((provider) => provider.id === "american-medical-center-checkup") ?? providers[0];
   }
 
   if (womenWellness) {
-    return providers.find((provider) => provider.id === "women-telehealth") ?? providers[0];
+    return providers.find((provider) => provider.id === "american-medical-center-checkup") ?? providers[0];
   }
 
   if (painAreas > 0) {
-    return providers.find((provider) => provider.id === "bole-spine-posture") ?? providers[0];
+    return providers.find((provider) => provider.id === "signature-wellness-bole") ?? providers[0];
   }
 
   const category =

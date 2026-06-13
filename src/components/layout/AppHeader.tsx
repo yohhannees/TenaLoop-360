@@ -2,8 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   Activity,
+  Bell,
   Bot,
   Dumbbell,
   Globe2,
@@ -11,6 +13,7 @@ import {
   LogOut,
   Sparkles,
   Store,
+  User,
   Users,
   Utensils,
 } from "lucide-react";
@@ -29,7 +32,22 @@ const NAV_LINKS = [
 
 export default function AppHeader() {
   const pathname = usePathname();
-  const { score, points, language, setLanguage } = useWellness();
+  const { score, points, language, setLanguage, user } = useWellness();
+  const [unread, setUnread] = useState(0);
+
+  useEffect(() => {
+    if (!user) return;
+    fetch("/api/notifications")
+      .then((r) => r.json())
+      .then((d: { unreadCount?: number }) => { if (typeof d.unreadCount === "number") setUnread(d.unreadCount); })
+      .catch(() => {});
+  }, [user]);
+
+  async function markRead() {
+    if (!unread) return;
+    await fetch("/api/notifications/read", { method: "PATCH" }).catch(() => {});
+    setUnread(0);
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b border-[#0A2318]/10 bg-[#E5EAE3]/92 backdrop-blur-xl">
@@ -41,9 +59,7 @@ export default function AppHeader() {
                 <Activity size={22} strokeWidth={1.5} />
               </span>
               <span>
-                <span className="block font-serif text-xl leading-tight text-[#0A2318]">
-                  TenaLoop 360
-                </span>
+                <span className="block font-serif text-xl leading-tight text-[#0A2318]">TenaLoop 360</span>
                 <span className="block text-xs text-[#0A2318]/58">Wellness command center</span>
               </span>
             </Link>
@@ -65,6 +81,30 @@ export default function AppHeader() {
                   <option>Amharic-ready</option>
                 </select>
               </label>
+
+              {/* Notification bell */}
+              <Link
+                href="/notifications"
+                onClick={markRead}
+                aria-label={`Notifications${unread ? ` (${unread} unread)` : ""}`}
+                className="relative inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#0A2318]/12 bg-[#E8EDE7]/85 text-[#0A2318]/72 shadow-sm shadow-[#0A2318]/5 transition hover:border-[#0A2318]/35 hover:text-[#0A2318]"
+              >
+                <Bell size={16} />
+                {unread > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[#C4503A] text-[8px] font-bold text-white">
+                    {unread > 9 ? "9+" : unread}
+                  </span>
+                )}
+              </Link>
+
+              {/* Profile */}
+              <Link
+                href="/profile"
+                aria-label="Profile"
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[#0A2318]/12 bg-[#E8EDE7]/85 text-[#0A2318]/72 shadow-sm shadow-[#0A2318]/5 transition hover:border-[#0A2318]/35 hover:text-[#0A2318]"
+              >
+                <User size={16} />
+              </Link>
 
               <Link
                 href="/signup"
@@ -109,22 +149,12 @@ export default function AppHeader() {
   );
 }
 
-function MetricPill({
-  label,
-  value,
-  warm = false,
-}: {
-  label: string;
-  value: string;
-  warm?: boolean;
-}) {
+function MetricPill({ label, value, warm = false }: { label: string; value: string; warm?: boolean }) {
   return (
     <span
       className={cn(
         "inline-flex h-9 items-center gap-1 rounded-full px-3 text-sm font-semibold shadow-sm shadow-[#0A2318]/5",
-        warm
-          ? "bg-[#D4C1A0]/55 text-[#0A2318]"
-          : "bg-[#0A2318] text-[#E8EDE7]",
+        warm ? "bg-[#D4C1A0]/55 text-[#0A2318]" : "bg-[#0A2318] text-[#E8EDE7]",
       )}
     >
       <span className="hidden text-xs uppercase text-current/65 sm:inline">{label}</span>

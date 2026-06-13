@@ -1,14 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, BadgePercent, PackageCheck, Sparkles } from "lucide-react";
 import { useWellness } from "@/context/WellnessContext";
-import { wellnessPackages } from "@/lib/market-providers";
+import { wellnessPackages as staticPackages, WellnessPackage } from "@/lib/market-providers";
 import { cn } from "@/lib/utils";
+
+type DbBundle = { id: string; title: string; subtitle: string; emoji: string; providerIds: string[]; providerNames: string[]; originalEtb: number; discountPct: number; finalEtb: number; bestFor: string; };
+
+function dbToPackage(b: DbBundle): WellnessPackage {
+  return { id: b.id, title: b.title, subtitle: b.subtitle, emoji: b.emoji, providerIds: b.providerIds, providerNames: b.providerNames, originalEtb: b.originalEtb, discountPct: b.discountPct, finalEtb: b.finalEtb, bestFor: b.bestFor };
+}
 
 export default function WellnessPackages() {
   const { award } = useWellness();
   const [booked, setBooked] = useState<string[]>([]);
+  const [packages, setPackages] = useState<WellnessPackage[]>(staticPackages);
+
+  useEffect(() => {
+    fetch("/api/bundles")
+      .then((r) => r.json())
+      .then((d: { bundles?: DbBundle[] }) => { if (d.bundles?.length) setPackages(d.bundles.map(dbToPackage)); })
+      .catch(() => {});
+  }, []);
 
   function book(id: string) {
     if (!booked.includes(id)) {
@@ -38,7 +52,7 @@ export default function WellnessPackages() {
       </div>
 
       <div className="grid gap-3 p-5 md:grid-cols-2 xl:grid-cols-4">
-        {wellnessPackages.map((pkg, index) => {
+        {packages.map((pkg, index) => {
           const isBooked = booked.includes(pkg.id);
           return (
             <article

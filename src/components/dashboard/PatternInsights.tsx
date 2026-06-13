@@ -1,23 +1,29 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Brain } from "lucide-react";
 import { useWellness } from "@/context/WellnessContext";
 import { getPatternInsights } from "@/lib/score";
 
-const STATIC_TREND = [58, 61, 63, 60, 67, 71];
-
 export default function PatternInsights() {
   const { score } = useWellness();
-  const trend = [...STATIC_TREND, score];
+  const [realTrend, setRealTrend] = useState<number[] | null>(null);
+
+  useEffect(() => {
+    fetch("/api/analytics")
+      .then((r) => r.json())
+      .then((data: { trend?: number[] }) => { if (data.trend) setRealTrend(data.trend); })
+      .catch(() => {});
+  }, [score]);
+
+  const trend = realTrend ? [...realTrend.slice(0, 6), score] : [0, 0, 0, 0, 0, 0, score];
   const insights = getPatternInsights(trend);
 
   return (
     <section className="rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-5 shadow-sm shadow-[#0A2318]/5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs font-bold uppercase text-[#8C6246]">
-            AI pattern analysis
-          </p>
+          <p className="text-xs font-bold uppercase text-[#8C6246]">AI pattern analysis</p>
           <h2 className="mt-1 font-serif text-3xl text-[#0A2318]">What the data shows</h2>
         </div>
         <div className="grid h-11 w-11 place-items-center rounded-full bg-[#D4C1A0]/45 text-[#0A2318]">
@@ -40,8 +46,9 @@ export default function PatternInsights() {
       </div>
 
       <div className="mt-4 rounded-[1.25rem] border border-[#8C6246]/18 bg-[#D4C1A0]/28 p-3 text-sm leading-6 text-[#0A2318]/72">
-        Insight model: stress x sleep x food x movement patterns over 7 days.
-        More check-ins improve accuracy.
+        {realTrend
+          ? "Insight model: stress x sleep x food x movement patterns from your real check-in history."
+          : "Insight model: stress x sleep x food x movement patterns over 7 days. More check-ins improve accuracy."}
       </div>
     </section>
   );

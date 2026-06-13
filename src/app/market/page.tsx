@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { CalendarCheck, Sparkles, Store } from "lucide-react";
 import { useWellness } from "@/context/WellnessContext";
@@ -19,6 +19,31 @@ const SORT_OPTIONS: { id: SortMode; label: string }[] = [
   { id: "price-asc",   label: "Price: low first" },
 ];
 
+function dbProviderToExtended(p: Record<string, unknown>): ExtendedProvider {
+  return {
+    id: p.id as string,
+    name: p.name as string,
+    type: p.type as string,
+    area: p.area as string,
+    price: p.price as string,
+    bestFor: p.bestFor as string,
+    category: p.category as ExtendedProvider["category"],
+    description: p.description as string,
+    rating: p.avgRating as number,
+    reviews: p.reviewCount as number,
+    emoji: p.emoji as string,
+    tags: p.tags as string[],
+    availableToday: p.availableToday as boolean,
+    slots: p.slots as string[],
+    passportDiscount: p.passportDiscount as number,
+    distance: p.distance as string,
+    hours: p.hours as string,
+    phone: p.phone as string,
+    imageUrl: (p.imageUrl as string | null) ?? "/tenaloop-photo-market.jpg",
+    sourceUrl: (p.sourceUrl as string | null) ?? "",
+  };
+}
+
 export default function MarketPage() {
   return (
     <Suspense fallback={null}>
@@ -31,11 +56,24 @@ function MarketPageContent() {
   const { checkIn, bookedProviders, bookProvider, stamps } = useWellness();
   const searchParams = useSearchParams();
   const linkedProviderId = searchParams.get("provider");
-  const linkedProvider =
-    extendedProviders.find((provider) => provider.id === linkedProviderId) ?? null;
-  const [expandedId, setExpandedId] = useState<string | null>(linkedProvider?.id ?? null);
+
+  const [providers, setProviders] = useState<ExtendedProvider[]>(extendedProviders);
+  const [expandedId, setExpandedId] = useState<string | null>(linkedProviderId ?? null);
   const [bookingProvider, setBookingProvider] = useState<ExtendedProvider | null>(null);
   const [dismissedLinkedProviderId, setDismissedLinkedProviderId] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/providers")
+      .then((r) => r.json())
+      .then((data: { providers?: Record<string, unknown>[] }) => {
+        if (data.providers?.length) {
+          setProviders(data.providers.map(dbProviderToExtended));
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const linkedProvider = providers.find((p) => p.id === linkedProviderId) ?? null;
 
   const recommendedCategory =
     checkIn.redFlags ? "Recovery" :
@@ -46,10 +84,9 @@ function MarketPageContent() {
     checkIn.bpFocus || checkIn.glucoseFocus ? "Food" : "Recovery";
 
   const { filter, setFilter, search, setSearch, sort, setSort, filtered } =
-    useMarketFilter(recommendedCategory);
+    useMarketFilter(providers, recommendedCategory);
 
   function toggleExpand(id: string) { setExpandedId((prev) => (prev === id ? null : id)); }
-
   function initiateBooking(p: ExtendedProvider) { if (!bookedProviders.includes(p.id)) setBookingProvider(p); }
 
   const queryBookingProvider =
@@ -65,11 +102,17 @@ function MarketPageContent() {
   }
 
   function closeModal() {
-    if (queryBookingProvider) {
-      setDismissedLinkedProviderId(queryBookingProvider.id);
-    }
+    if (queryBookingProvider) setDismissedLinkedProviderId(queryBookingProvider.id);
     setBookingProvider(null);
     setExpandedId(null);
+  }
+
+  function handleReviewSubmit(providerId: string, newRating: number, newCount: number) {
+    setProviders((prev) =>
+      prev.map((p) =>
+        p.id === providerId ? { ...p, rating: newRating, reviews: newCount } : p,
+      ),
+    );
   }
 
   return (
@@ -79,7 +122,6 @@ function MarketPageContent() {
       )}
     <div className="grid gap-5 lg:grid-cols-[280px_1fr]">
 
-      {/* ── LEFT: Sidebar ─────────────────────────────────── */}
       <MarketSidebar
         filter={filter}
         setFilter={setFilter}
@@ -88,7 +130,6 @@ function MarketPageContent() {
         recommendedCategory={recommendedCategory}
       />
 
-      {/* ── RIGHT: Results + Packages ─────────────────────── */}
       <div className="grid content-start gap-5">
         <section className="overflow-hidden rounded-[2rem] border border-[#0A2318]/10 bg-[#0A2318] text-[#E8EDE7] shadow-sm shadow-[#0A2318]/5">
           <div className="grid gap-5 p-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
@@ -113,7 +154,6 @@ function MarketPageContent() {
           </div>
         </section>
 
-        {/* Sort + results count bar */}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-[#0A2318]/55">
             <span className="font-semibold text-[#0A2318]">{filtered.length}</span>
@@ -139,14 +179,11 @@ function MarketPageContent() {
           </div>
         </div>
 
-        {/* Provider grid */}
         {filtered.length === 0 ? (
           <div className="rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-8 text-center">
             <p className="text-2xl">🔍</p>
             <p className="mt-2 font-serif text-xl text-[#0A2318]">No results</p>
-            <p className="mt-1 text-sm text-[#0A2318]/55">
-              Try a different search or filter.
-            </p>
+            <p className="mt-1 text-sm text-[#0A2318]/55">Try a different search or filter.</p>
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
@@ -160,29 +197,20 @@ function MarketPageContent() {
                 expanded={expandedId === provider.id}
                 onExpand={() => toggleExpand(provider.id)}
                 onBook={() => initiateBooking(provider)}
+                onReviewSubmit={handleReviewSubmit}
               />
             ))}
           </div>
         )}
 
-        {/* Wellness packages */}
         <WellnessPackages />
-
       </div>
     </div>
     </>
   );
 }
 
-function MarketStat({
-  icon: Icon,
-  label,
-  value,
-}: {
-  icon: typeof Store;
-  label: string;
-  value: string;
-}) {
+function MarketStat({ icon: Icon, label, value }: { icon: typeof Store; label: string; value: string }) {
   return (
     <div className="min-w-0 rounded-2xl border border-[#E8EDE7]/12 px-3 py-2">
       <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase text-[#D4C1A0]/72">

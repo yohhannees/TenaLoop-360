@@ -63,6 +63,8 @@ export type Provider = {
   price: string;
   bestFor: string;
   category: "Stress" | "Movement" | "Food" | "Recovery";
+  imageUrl?: string | null;
+  sourceUrl?: string | null;
 };
 
 export type Circle = {
