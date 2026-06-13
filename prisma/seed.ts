@@ -2,6 +2,7 @@ import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 import { circles } from "../src/lib/circles";
+import { dashboardConfigDefaults } from "../src/lib/dashboard-config";
 import { extendedProviders, wellnessPackages } from "../src/lib/market-providers";
 
 const connectionString =
@@ -121,11 +122,23 @@ async function seedCircles() {
   }
 }
 
+async function seedDashboardConfig() {
+  await prisma.appSetting.upsert({
+    where: { id: "dashboard" },
+    update: { value: dashboardConfigDefaults },
+    create: {
+      id: "dashboard",
+      value: dashboardConfigDefaults,
+    },
+  });
+}
+
 async function main() {
-  console.log("Seeding real Ethiopian providers, wellness bundles, and circles...");
+  console.log("Seeding real Ethiopian providers, wellness bundles, circles, and dashboard settings...");
   await seedProviders();
   await seedBundles();
   await seedCircles();
+  await seedDashboardConfig();
   console.log("Seed complete.");
 }
 

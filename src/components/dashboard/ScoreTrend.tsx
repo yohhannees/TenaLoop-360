@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { Activity, ArrowUpRight, BadgeCheck, Sparkles } from "lucide-react";
 import { useWellness } from "@/context/WellnessContext";
+import { useDashboardConfig } from "@/hooks/useDashboardConfig";
 import MiniStat from "@/components/ui/MiniStat";
+import { CheckIn, Stamp } from "@/lib/types";
 
 type AnalyticsData = {
   trend: number[];
@@ -14,8 +16,18 @@ type AnalyticsData = {
 };
 
 export default function ScoreTrend() {
-  const { score, points, stamps, scoreLabel } = useWellness();
+  const { checkIn, score, points, stamps, scoreLabel, plan } = useWellness();
+  const config = useDashboardConfig();
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const nextBestAction = getNextBestAction(checkIn, score, stamps, plan[0]?.detail);
+  const passportGoal = getPassportGoal({
+    currentStamps: stamps.length,
+    totalStamps: 6,
+    requiredStamps: config.reward.requiredStamps,
+    points,
+    pointThreshold: config.reward.pointThreshold,
+    discountLabel: config.reward.discountLabel,
+  });
 
   useEffect(() => {
     fetch("/api/analytics")
@@ -102,20 +114,93 @@ export default function ScoreTrend() {
           </div>
           <h3 className="mt-4 font-serif text-2xl text-[#0A2318]">Next best action</h3>
           <p className="mt-2 text-sm leading-6 text-[#0A2318]/64">
-            Complete the daily loop, then stamp one mind action and one movement action
-            before booking a provider.
+            {nextBestAction}
           </p>
           <div className="mt-5 rounded-[1.25rem] bg-[#E8EDE7] p-3 text-sm leading-6 text-[#0A2318]/70 shadow-sm">
             <div className="mb-2 flex items-center gap-2 font-semibold text-[#8C6246]">
               <BadgeCheck size={17} />
               Passport goal
             </div>
-            Earn 4 of 6 stamps to unlock the first wellness discount.
+            {passportGoal}
           </div>
         </aside>
       </div>
     </section>
   );
+}
+
+function getNextBestAction(
+  checkIn: CheckIn,
+  score: number,
+  stamps: Stamp[],
+  firstPlanDetail?: string,
+) {
+  if (checkIn.redFlags) {
+    return "Warning signs are selected. Prioritize licensed care and keep self-care gentle today.";
+  }
+
+  if (score < 50) {
+    return firstPlanDetail || "Start with the smallest reset action, then save today's check-in.";
+  }
+
+  if (!stamps.includes("Health")) {
+    return "Save today's check-in to lock the Health stamp and refresh your seven-day trend.";
+  }
+
+  if (checkIn.stress >= 7 && !stamps.includes("Mind")) {
+    return "Stress is the main signal. Complete one Efoy mind reset before adding movement or market actions.";
+  }
+
+  if (checkIn.movement < 20 && !stamps.includes("Move")) {
+    return "Movement is below target. Log a short walk or mobility session to close the Move stamp.";
+  }
+
+  if ((checkIn.bpFocus || checkIn.glucoseFocus) && !stamps.includes("Food")) {
+    return "Food is the best next lever. Log the next meal and use a lower-sugar, higher-fiber swap.";
+  }
+
+  if (!stamps.includes("Community")) {
+    return "Add one human support signal by joining a circle or posting a quick anonymous mood check.";
+  }
+
+  if (!stamps.includes("Experience")) {
+    return "You have the habit base. Save or book one matched Ethiopian provider to close the Experience stamp.";
+  }
+
+  return "All core stamps are active. Keep today's loop small and protect the habit that lifted your score most.";
+}
+
+function getPassportGoal({
+  currentStamps,
+  totalStamps,
+  requiredStamps,
+  points,
+  pointThreshold,
+  discountLabel,
+}: {
+  currentStamps: number;
+  totalStamps: number;
+  requiredStamps: number;
+  points: number;
+  pointThreshold: number;
+  discountLabel: string;
+}) {
+  const missingStamps = Math.max(0, requiredStamps - currentStamps);
+  const missingPoints = Math.max(0, pointThreshold - points);
+
+  if (missingStamps === 0 && missingPoints === 0) {
+    return `Reward unlocked: ${discountLabel}.`;
+  }
+
+  if (missingStamps === 0) {
+    return `Stamp goal cleared at ${currentStamps}/${totalStamps}. ${missingPoints} more point${missingPoints === 1 ? "" : "s"} to unlock ${discountLabel}.`;
+  }
+
+  if (missingPoints === 0) {
+    return `${missingStamps} more stamp${missingStamps === 1 ? "" : "s"} to unlock ${discountLabel}.`;
+  }
+
+  return `${missingStamps} more stamp${missingStamps === 1 ? "" : "s"} and ${missingPoints} more point${missingPoints === 1 ? "" : "s"} to unlock ${discountLabel}.`;
 }
 
 function getDayLabel(index: number, total: number): string {

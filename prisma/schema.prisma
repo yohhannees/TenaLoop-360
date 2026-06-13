@@ -385,3 +385,10 @@ model Notification {
 
   @@index([userId, read, createdAt])
 }
+
+model AppSetting {
+  id        String   @id
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -261,19 +261,50 @@ export function coachReply(input: string, checkIn: CheckIn, score: number): stri
   return `Your TenaScore is ${score}, a ${label} zone. Keep going. Your plan today: protect one quiet focus block, choose a balanced Ethiopian meal, drink eight cups of water, and complete your movement goal. If you want to push your score higher, log tonight's sleep and join a peer circle.`;
 }
 
-export function getPatternInsights(history: number[]): string[] {
+export type PatternInsightStats = {
+  checkInCount?: number;
+  avgStress?: number | null;
+  avgSleep?: number | null;
+  avgMovement?: number | null;
+  highRiskMealCount?: number;
+  movementCount?: number;
+};
+
+export function getPatternInsights(history: number[], stats: PatternInsightStats = {}): string[] {
   const insights: string[] = [];
-  const avg = history.reduce((a, b) => a + b, 0) / history.length;
-  const trend = history[history.length - 1] - history[0];
+  const realScores = history.filter((score) => score > 0);
+
+  if ((stats.checkInCount ?? realScores.length) === 0) {
+    return [
+      "No saved check-ins yet. Save today's loop to start building a real pattern history.",
+      "Your next insight will compare stress, sleep, food, movement, and score changes over the last seven days.",
+    ];
+  }
+
+  const avg = Math.round(realScores.reduce((a, b) => a + b, 0) / realScores.length);
+  const trend = realScores[realScores.length - 1] - realScores[0];
 
   if (trend > 8) insights.push(`Your TenaScore improved by ${trend} points over the past week. Keep the momentum.`);
   else if (trend < -5) insights.push("Your score has been declining. Review sleep and meal patterns from the past three days.");
   else insights.push("Your score has been stable. Small habit improvements will compound quickly from here.");
 
-  if (avg < 60) insights.push("Average score below 60 - stress and sleep are likely the main drag. Prioritize a consistent wind-down routine.");
-  else if (avg >= 70) insights.push("Strong average score. Focus on maintaining food balance and movement consistency.");
+  if (stats.avgStress !== null && stats.avgStress !== undefined && stats.avgStress >= 7) {
+    insights.push(`Stress is averaging ${stats.avgStress}/10. Put the mind reset before market or workout actions.`);
+  } else if (stats.avgSleep !== null && stats.avgSleep !== undefined && stats.avgSleep < 6) {
+    insights.push(`Sleep is averaging ${stats.avgSleep} hours. A consistent wind-down is the highest-leverage next habit.`);
+  } else if (avg < 60) {
+    insights.push("Average score is below 60. Keep the next plan small and repeatable until the baseline rises.");
+  } else if (avg >= 70) {
+    insights.push("Strong average score. Focus on maintaining food balance and movement consistency.");
+  }
 
-  insights.push("Scores tend to be highest on days with seven-plus hours of sleep and a low-risk meal.");
+  if ((stats.highRiskMealCount ?? 0) > 0) {
+    insights.push(`${stats.highRiskMealCount} saved check-in${stats.highRiskMealCount === 1 ? "" : "s"} included a high-risk food signal. Use the next meal swap to protect the score.`);
+  } else if ((stats.avgMovement ?? 0) < 20 && (stats.movementCount ?? 0) === 0) {
+    insights.push("Movement is still under the 20-minute target. Log one short walk to create the first movement signal.");
+  } else {
+    insights.push("Scores tend to be highest on days with seven-plus hours of sleep and a low-risk meal.");
+  }
 
   return insights;
 }

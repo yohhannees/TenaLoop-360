@@ -10,6 +10,7 @@ import {
   Utensils,
 } from "lucide-react";
 import { useWellness } from "@/context/WellnessContext";
+import { CheckIn, Stamp } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const deckCards = [
@@ -18,7 +19,7 @@ const deckCards = [
     icon: Brain,
     label: "Mind signal",
     title: "Reset before the next task",
-    body: "A short TenaBot plan for stress, sleep, and support.",
+    body: "",
     src: "/tenaloop-photo-mind.jpg",
     position: "50% 48%",
     tone: "bg-[#E8EDE7] text-[#0A2318]",
@@ -29,7 +30,7 @@ const deckCards = [
     icon: Utensils,
     label: "Plate signal",
     title: "Choose the next better meal",
-    body: "Local swaps for injera, shiro, gomen, fasting days, BP, and glucose.",
+    body: "",
     src: "/tenaloop-photo-food-plate.jpg",
     position: "50% 52%",
     tone: "bg-[#D4C1A0] text-[#0A2318]",
@@ -40,7 +41,7 @@ const deckCards = [
     icon: CalendarCheck,
     label: "Care signal",
     title: "Book the right local support",
-    body: "Match the score to yoga, nutrition, screening, walking, or recovery.",
+    body: "",
     src: "/tenaloop-photo-market.jpg",
     position: "50% 54%",
     tone: "bg-[#0A2318] text-[#E8EDE7]",
@@ -49,8 +50,16 @@ const deckCards = [
 ];
 
 export default function ActionDeck() {
-  const { plan, score, scoreLabel, foodSignal } = useWellness();
+  const { checkIn, plan, score, scoreLabel, foodSignal, stamps } = useWellness();
   const quickPlan = plan.slice(0, 3);
+  const cardBodies = getActionCardBodies({
+    checkIn,
+    score,
+    scoreLabel,
+    foodRisk: foodSignal.risk,
+    foodSwap: foodSignal.swap,
+    stamps,
+  });
 
   return (
     <section className="grid min-w-0 gap-8 overflow-hidden rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-5 shadow-sm shadow-[#0A2318]/5 lg:grid-cols-[0.82fr_1.18fr] lg:p-8">
@@ -61,8 +70,8 @@ export default function ActionDeck() {
             Today&apos;s action stack
           </h2>
           <p className="mt-3 max-w-md text-sm leading-6 text-[#0A2318]/64">
-            The dashboard now behaves more like a working desk: score, plan,
-            care options, and next action are visible at once.
+            Today&apos;s cards are built from your latest check-in, food signal,
+            stamps, and score history.
           </p>
         </div>
 
@@ -136,7 +145,7 @@ export default function ActionDeck() {
                   {card.label}
                 </div>
                 <h3 className="font-serif text-2xl leading-tight">{card.title}</h3>
-                <p className="text-sm leading-6 opacity-72">{card.body}</p>
+                <p className="text-sm leading-6 opacity-72">{cardBodies[index]}</p>
                 <div className="flex items-center justify-between border-t border-current/12 pt-3 text-xs font-semibold uppercase">
                   <span>Open module</span>
                   <ArrowRight size={16} className="transition group-hover:translate-x-1" />
@@ -148,6 +157,47 @@ export default function ActionDeck() {
       </div>
     </section>
   );
+}
+
+function getActionCardBodies({
+  checkIn,
+  score,
+  scoreLabel,
+  foodRisk,
+  foodSwap,
+  stamps,
+}: {
+  checkIn: CheckIn;
+  score: number;
+  scoreLabel: string;
+  foodRisk: string;
+  foodSwap: string;
+  stamps: Stamp[];
+}) {
+  const mind =
+    checkIn.stress >= 7
+      ? `Stress is ${checkIn.stress}/10. Start with a 3-minute Efoy reset, then protect one quiet block.`
+      : checkIn.sleep < 6
+        ? `Sleep is ${checkIn.sleep} hours. Keep the next action gentle and protect tonight's wind-down.`
+        : `${scoreLabel} zone at ${score}. Maintain the habit that kept stress and support steady.`;
+
+  const food =
+    foodRisk === "High"
+      ? `Food risk is high from the latest meal. Next swap: ${foodSwap}`
+      : checkIn.bpFocus || checkIn.glucoseFocus
+        ? `BP/glucose focus is on. Keep injera moderate, reduce sweet coffee, and log the next plate.`
+        : `Food signal is ${foodRisk.toLowerCase()}. Repeat the balanced plate and add water before the next meal.`;
+
+  const care =
+    checkIn.redFlags
+      ? "Warning signs selected. Skip self-treatment and route to licensed care before intense activity."
+      : checkIn.painAreas.length > 0
+        ? `${checkIn.painAreas.join(", ")} need attention. Pick gentle movement or a provider match before pushing harder.`
+        : !stamps.includes("Experience")
+          ? "You have not closed the Experience stamp yet. Save one matched Ethiopian provider from the market."
+          : "Experience stamp is active. Use the market only if today's score or body signal needs extra support.";
+
+  return [mind, food, care];
 }
 
 function Signal({ label, value }: { label: string; value: string }) {

@@ -1,19 +1,62 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Check } from "lucide-react";
 import { CIRCLE_CHALLENGES } from "@/lib/circle-content";
-import { useWellness } from "@/context/WellnessContext";
 import { cn } from "@/lib/utils";
 
-const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+const DAY_LABELS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
 type Props = { circleId: string };
 
 export default function ChallengeTracker({ circleId }: Props) {
-  const { logCircleChallenge } = useWellness();
   const challenge = CIRCLE_CHALLENGES.find((c) => c.circleId === circleId);
-  const [done, setDone] = useState<boolean[]>([true, true, false, false, false]);
+  const dayLabels = useMemo(
+    () => DAY_LABELS.slice(0, challenge?.days ?? 5),
+    [challenge?.days],
+  );
+  const challengePrefix = challenge ? `${circleId}:${challenge.title}:` : "";
+  const [done, setDone] = useState<boolean[]>(() => dayLabels.map(() => false));
+  const [groupPct, setGroupPct] = useState(0);
+  const [savingDay, setSavingDay] = useState<number | null>(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!challenge) return;
+
+    let cancelled = false;
+    fetch(
+      `/api/circles/challenges?circleId=${encodeURIComponent(circleId)}&challengeIdPrefix=${encodeURIComponent(challengePrefix)}&days=${challenge.days}`,
+      { cache: "no-store" },
+    )
+      .then(async (response) => {
+        const data = (await response.json().catch(() => null)) as {
+          completedChallengeIds?: string[];
+          groupPct?: number;
+          error?: string;
+        } | null;
+
+        if (!response.ok) throw new Error(data?.error || "Challenge progress could not be loaded.");
+        return data;
+      })
+      .then((data) => {
+        if (cancelled) return;
+        const completed = new Set(data?.completedChallengeIds ?? []);
+        setDone(dayLabels.map((day) => completed.has(`${challengePrefix}${day}`)));
+        setGroupPct(typeof data?.groupPct === "number" ? data.groupPct : 0);
+        setError("");
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setDone(dayLabels.map(() => false));
+        setGroupPct(0);
+        setError(err instanceof Error ? err.message : "Challenge progress could not be loaded.");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [challenge, challengePrefix, circleId, dayLabels]);
 
   if (!challenge) return null;
 
@@ -21,12 +64,31 @@ export default function ChallengeTracker({ circleId }: Props) {
   const myPct         = Math.round((completedDays / challenge.days) * 100);
   const challengeTitle = challenge.title;
 
-  function toggleDay(i: number) {
-    if (done[i]) return; // can't un-complete a day
-    const next = [...done];
-    next[i] = true;
-    setDone(next);
-    logCircleChallenge(circleId, `${circleId}:${challengeTitle}:${DAY_LABELS[i]}`, 8);
+  async function toggleDay(i: number) {
+    if (done[i] || savingDay !== null) return;
+    setSavingDay(i);
+    setError("");
+
+    try {
+      const response = await fetch("/api/circles/challenges", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          circleId,
+          challengeId: `${circleId}:${challengeTitle}:${dayLabels[i]}`,
+          points: 8,
+        }),
+      });
+
+      const data = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) throw new Error(data?.error || "Challenge day could not be saved.");
+
+      setDone((prev) => prev.map((value, index) => (index === i ? true : value)));
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Challenge day could not be saved.");
+    } finally {
+      setSavingDay(null);
+    }
   }
 
   return (
@@ -36,12 +98,12 @@ export default function ChallengeTracker({ circleId }: Props) {
 
       {/* Day tracker */}
       <div className="mt-3 flex gap-2">
-        {DAY_LABELS.map((day, i) => (
+        {dayLabels.map((day, i) => (
           <button
             key={day}
             type="button"
             onClick={() => toggleDay(i)}
-            disabled={done[i]}
+            disabled={done[i] || savingDay !== null}
             title={done[i] ? "Completed" : `Mark ${day} done`}
             className={cn(
               "flex flex-1 flex-col items-center gap-1.5 rounded-xl py-2 transition",
@@ -53,7 +115,9 @@ export default function ChallengeTracker({ circleId }: Props) {
             <span className="text-[10px] font-semibold">{day}</span>
             {done[i]
               ? <Check size={14} strokeWidth={2.5} />
-              : <span className="h-3.5 w-3.5 rounded-full border-2 border-current opacity-40" />
+              : savingDay === i
+                ? <span className="h-3.5 w-3.5 animate-pulse rounded-full bg-current opacity-40" />
+                : <span className="h-3.5 w-3.5 rounded-full border-2 border-current opacity-40" />
             }
           </button>
         ))}
@@ -71,12 +135,18 @@ export default function ChallengeTracker({ circleId }: Props) {
 
         <div className="flex items-center justify-between text-xs text-[#0A2318]/45">
           <span>Group completion</span>
-          <span className="font-semibold text-[#8C6246]">{challenge.groupPct}% completed</span>
+          <span className="font-semibold text-[#8C6246]">{groupPct}% completed</span>
         </div>
         <div className="h-1.5 overflow-hidden rounded-full bg-[#0A2318]/8">
-          <div className="h-full rounded-full bg-[#8C6246] transition-all duration-500" style={{ width: `${challenge.groupPct}%` }} />
+          <div className="h-full rounded-full bg-[#8C6246] transition-all duration-500" style={{ width: `${groupPct}%` }} />
         </div>
       </div>
+
+      {error && (
+        <p className="mt-3 rounded-xl border border-[#C4503A]/20 bg-[#C4503A]/8 px-3 py-2 text-xs font-semibold text-[#C4503A]">
+          {error}
+        </p>
+      )}
 
       {completedDays >= challenge.days && (
         <p className="mt-3 rounded-xl bg-[#0A2318] px-3 py-2 text-center text-xs font-bold text-[#D4C1A0]">

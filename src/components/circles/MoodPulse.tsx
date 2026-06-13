@@ -1,17 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { CIRCLE_POSTS } from "@/lib/circle-content";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 
 type CircleMood = "Low" | "Okay" | "Good";
-
-const WEEK = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] as const;
-const WEEK_DATA: Record<CircleMood, number[]> = {
-  Low:  [18, 24, 21, 19, 16, 14, 12],
-  Okay: [45, 42, 44, 46, 41, 38, 37],
-  Good: [37, 34, 35, 35, 43, 48, 51],
-};
 
 const MOOD_COLOR: Record<CircleMood, string> = {
   Low:  "#C4503A",
@@ -20,26 +12,77 @@ const MOOD_COLOR: Record<CircleMood, string> = {
 };
 
 type Props = { circleId?: string };
+type MoodSummary = {
+  total: number;
+  percentages: Record<CircleMood, number>;
+  goodTrend: number[];
+  labels: string[];
+};
+
+const EMPTY_SUMMARY: MoodSummary = {
+  total: 0,
+  percentages: { Low: 0, Okay: 0, Good: 0 },
+  goodTrend: [0, 0, 0, 0, 0, 0, 0],
+  labels: ["", "", "", "", "", "", "Today"],
+};
 
 export default function MoodPulse({ circleId }: Props) {
   const [myMood, setMyMood] = useState<CircleMood | null>(null);
   const [submitted, setSubmitted] = useState(false);
+  const [summary, setSummary] = useState<MoodSummary>(EMPTY_SUMMARY);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
-  // Derive live percentages from posts (or fallback to static)
-  const posts  = circleId ? CIRCLE_POSTS.filter((p) => p.circleId === circleId) : CIRCLE_POSTS;
-  const total  = posts.length || 1;
-  const goodN  = posts.filter((p) => p.mood === "Good").length;
-  const okayN  = posts.filter((p) => p.mood === "Okay").length;
-  const lowN   = posts.filter((p) => p.mood === "Low").length;
-  const live   = {
-    Low:  Math.round((lowN  / total) * 100),
-    Okay: Math.round((okayN / total) * 100),
-    Good: Math.round((goodN / total) * 100),
-  };
+  useEffect(() => {
+    void loadPulse();
+  }, [circleId]);
 
-  function submitMood() {
+  async function loadPulse() {
+    if (!circleId) return;
+    setIsLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(`/api/circles/check-ins?circleId=${encodeURIComponent(circleId)}`, {
+        cache: "no-store",
+      });
+      const data = (await response.json().catch(() => null)) as {
+        moodSummary?: MoodSummary;
+        error?: string;
+      } | null;
+
+      if (!response.ok) throw new Error(data?.error || "Mood pulse could not be loaded.");
+      setSummary(data?.moodSummary ?? EMPTY_SUMMARY);
+    } catch (err) {
+      setSummary(EMPTY_SUMMARY);
+      setError(err instanceof Error ? err.message : "Mood pulse could not be loaded.");
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  async function submitMood() {
     if (!myMood) return;
-    setSubmitted(true);
+    setIsSubmitting(true);
+    setError("");
+
+    try {
+      const response = await fetch("/api/circles/check-ins", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ circleId, mood: myMood }),
+      });
+      const data = (await response.json().catch(() => null)) as { error?: string } | null;
+
+      if (!response.ok) throw new Error(data?.error || "Mood could not be shared.");
+      setSubmitted(true);
+      await loadPulse();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Mood could not be shared.");
+    } finally {
+      setIsSubmitting(false);
+    }
   }
 
   return (
@@ -53,12 +96,12 @@ export default function MoodPulse({ circleId }: Props) {
           <div key={mood}>
             <div className="mb-1 flex items-center justify-between text-xs">
               <span className="font-medium text-[#0A2318]/70">{mood}</span>
-              <span className="font-semibold" style={{ color: MOOD_COLOR[mood] }}>{live[mood]}%</span>
+              <span className="font-semibold" style={{ color: MOOD_COLOR[mood] }}>{summary.percentages[mood]}%</span>
             </div>
             <div className="h-2.5 overflow-hidden rounded-full bg-[#0A2318]/8">
               <div
                 className="h-full rounded-full transition-all duration-700"
-                style={{ width: `${live[mood]}%`, backgroundColor: MOOD_COLOR[mood] }}
+                style={{ width: `${summary.percentages[mood]}%`, backgroundColor: MOOD_COLOR[mood] }}
               />
             </div>
           </div>
@@ -69,13 +112,13 @@ export default function MoodPulse({ circleId }: Props) {
       <div className="mt-5">
         <p className="mb-2 text-xs font-bold uppercase text-[#0A2318]/40">7-day Good trend</p>
         <div className="flex items-end gap-1 h-12">
-          {WEEK.map((day, i) => {
-            const h = Math.max(4, WEEK_DATA.Good[i] * 1.1);
+          {summary.labels.map((day, i) => {
+            const h = Math.max(4, summary.goodTrend[i] * 1.1);
             return (
               <div key={day} className="flex flex-1 flex-col items-center gap-1">
                 <div
                   className="w-full rounded-t-md bg-[#0A2318]"
-                  style={{ height: `${h}px`, opacity: 0.55 + i * 0.065 }}
+                  style={{ height: `${h}px`, opacity: 0.35 + Math.max(0.2, summary.goodTrend[i] / 100) * 0.65 }}
                 />
                 <span className="text-[9px] text-[#0A2318]/35">{day}</span>
               </div>
@@ -83,6 +126,14 @@ export default function MoodPulse({ circleId }: Props) {
           })}
         </div>
       </div>
+
+      <p className="mt-3 text-[10px] leading-5 text-[#0A2318]/40">
+        {isLoading
+          ? "Loading live circle mood..."
+          : summary.total > 0
+            ? `${summary.total} mood check-in${summary.total === 1 ? "" : "s"} counted this week.`
+            : "No mood check-ins logged for this circle this week."}
+      </p>
 
       {/* My mood contribution */}
       <div className="mt-5 border-t border-[#0A2318]/8 pt-4">
@@ -98,6 +149,7 @@ export default function MoodPulse({ circleId }: Props) {
                 key={m}
                 type="button"
                 onClick={() => setMyMood(m)}
+                disabled={isSubmitting}
                 className={cn(
                   "flex-1 h-9 rounded-full border text-xs font-semibold transition",
                   myMood === m
@@ -112,17 +164,24 @@ export default function MoodPulse({ circleId }: Props) {
               <button
                 type="button"
                 onClick={submitMood}
-                className="h-9 rounded-full bg-[#8C6246] px-4 text-xs font-bold text-[#E8EDE7] transition hover:bg-[#724F38]"
+                disabled={isSubmitting}
+                className="h-9 rounded-full bg-[#8C6246] px-4 text-xs font-bold text-[#E8EDE7] transition hover:bg-[#724F38] disabled:opacity-55"
               >
-                Share
+                {isSubmitting ? "Saving" : "Share"}
               </button>
             )}
           </div>
         )}
       </div>
 
+      {error && (
+        <p className="mt-3 rounded-2xl border border-[#C4503A]/20 bg-[#C4503A]/8 px-3 py-2 text-xs font-semibold text-[#C4503A]">
+          {error}
+        </p>
+      )}
+
       <p className="mt-3 text-[10px] leading-5 text-[#0A2318]/40">
-        All responses are anonymous and aggregated. Individual data is never stored.
+        Responses are aggregated for the circle. Names are not shown in the pulse.
       </p>
     </section>
   );

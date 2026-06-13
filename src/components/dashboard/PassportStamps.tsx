@@ -1,6 +1,7 @@
 "use client";
 
 import { useWellness } from "@/context/WellnessContext";
+import { useDashboardConfig } from "@/hooks/useDashboardConfig";
 import { Stamp } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -8,6 +9,14 @@ const ALL_STAMPS: Stamp[] = ["Mind", "Food", "Move", "Community", "Experience", 
 
 export default function PassportStamps() {
   const { stamps, points } = useWellness();
+  const config = useDashboardConfig();
+  const rewardMessage = getRewardMessage({
+    points,
+    stampCount: stamps.length,
+    pointThreshold: config.reward.pointThreshold,
+    requiredStamps: config.reward.requiredStamps,
+    discountLabel: config.reward.discountLabel,
+  });
 
   return (
     <div className="rounded-[2rem] border border-[#0A2318]/10 bg-[#E8EDE7] p-5 shadow-sm shadow-[#0A2318]/5">
@@ -35,10 +44,39 @@ export default function PassportStamps() {
       </div>
 
       <div className="mt-5 rounded-[1.25rem] border border-[#8C6246]/20 bg-[#D4C1A0]/35 p-3 text-sm leading-6 text-[#0A2318]/76">
-        {points >= 240
-          ? "Reward unlocked: 20% off a yoga, spa, or nutrition booking."
-          : `${240 - points} more points to unlock your 20% wellness discount.`}
+        {rewardMessage}
       </div>
     </div>
   );
+}
+
+function getRewardMessage({
+  points,
+  stampCount,
+  pointThreshold,
+  requiredStamps,
+  discountLabel,
+}: {
+  points: number;
+  stampCount: number;
+  pointThreshold: number;
+  requiredStamps: number;
+  discountLabel: string;
+}) {
+  const missingPoints = Math.max(0, pointThreshold - points);
+  const missingStamps = Math.max(0, requiredStamps - stampCount);
+
+  if (missingPoints === 0 && missingStamps === 0) {
+    return `Reward unlocked: ${discountLabel}.`;
+  }
+
+  if (missingStamps === 0) {
+    return `${missingPoints} more point${missingPoints === 1 ? "" : "s"} to unlock ${discountLabel}.`;
+  }
+
+  if (missingPoints === 0) {
+    return `${missingStamps} more stamp${missingStamps === 1 ? "" : "s"} to unlock ${discountLabel}.`;
+  }
+
+  return `${missingStamps} more stamp${missingStamps === 1 ? "" : "s"} and ${missingPoints} more point${missingPoints === 1 ? "" : "s"} to unlock ${discountLabel}.`;
 }

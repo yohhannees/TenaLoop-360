@@ -45,7 +45,7 @@ type WellnessContextValue = {
   logCircleCheckIn: (circleId: string, mood: string, note?: string) => void;
   logCircleChallenge: (circleId: string, challengeId: string, points: number) => void;
   // food and movement
-  logMeal: (text: string, slot?: string, photoUrl?: string | null) => void;
+  logMeal: (text: string, slot?: string, photoUrl?: string | null) => Promise<boolean>;
   logHydration: (cups: number, goal?: number) => void;
   logMovement: (details: MovementDetails) => void;
   // language
@@ -205,7 +205,7 @@ export function WellnessProvider({ children }: { children: ReactNode }) {
   function logMeal(text: string, slot?: string, photoUrl?: string | null) {
     updateCheckIn("meal", text);
     optimisticAward("Food", 15);
-    void postStateful("/api/food/meals", {
+    return postStateful("/api/food/meals", {
       text,
       slot,
       photoUrl: photoUrl || undefined,
@@ -262,14 +262,16 @@ export function WellnessProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify(body),
       });
 
-      if (!response.ok) return;
+      if (!response.ok) return false;
       const data = (await response.json().catch(() => null)) as {
         state?: WellnessBackendState;
       } | null;
 
       if (data?.state) applyBackendState(data.state);
+      return true;
     } catch {
       // Keep the optimistic local experience if the backend is offline.
+      return false;
     }
   }
 
